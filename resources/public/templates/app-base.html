@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>bilgge.</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Lusitana&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" integrity="sha512-+4zCK9k+qNFUR5X+cKL9EIR+ZOhtIloNl9GIKS57V1MyNsYpYcUrUeQc9vNfzsWfV28IaLL3i96P9sdNyeRssA==" crossorigin="anonymous" />
+  </head>
+  <style>
+    html, body, button, input, select {
+      font-family: 'Lusitana', serif;
+    }
+    .section-header {
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+    }
+    .brand-text {
+      border-top: 3px solid #121212;
+    }
+    .create-new-wrapper {
+      display: flex;
+      height: 100%;
+      align-items: center;
+    }
+    .management-actions {
+      display: flex;
+      height: 100%;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .management-actions > button:last-child {
+      margin-left: 10px;
+    }
+    .listing-item {
+      background-color: #fafafa;
+      border-right: 3px solid #7a7a7a;
+    }
+    .listing-item.active {
+      border-right-color: #121212;
+    }
+    .columns.is-gapless > .column.listing-item {
+      padding: 1rem 0 !important;
+    }
+  </style>
+  <body>
+      <section class="section section-header">
+        <div class="container">
+          <!-- header -->
+          <div class="columns">
+            <!-- add-new-item -->
+            <div class="column is-one-fifth">
+              <div class="create-new-wrapper">
+                <div class="dropdown is-hoverable">
+                  <div class="dropdown-trigger">
+                    <button class="button is-light is-large" aria-haspopup="true" aria-controls="create-new-menu">
+                      <span class="icon is-small">
+                        <i class="fas fa-plus" aria-hidden="true"></i>
+                      </span>
+                    </button>
+                  </div>
+                  <div class="dropdown-menu" id="create-new-menu" role="menu">
+                    <div class="dropdown-content">
+                      <div class="dropdown-item">
+                        <span class="icon">
+                          <i class="fas fa-sticky-note"></i>
+                        </span>
+                        <span class="is-size-5">note</span>
+                      </div>
+                      <div class="dropdown-item">
+                        <span class="icon">
+                          <i class="fas fa-keyboard"></i>
+                        </span>
+                        <span class="is-size-5">inputs</span>
+                      </div>
+                      <hr class="dropdown-divider">
+                      <div class="dropdown-item">
+                        <span class="icon">
+                          <i class="fas fa-folder"></i>
+                        </span>
+                        <span class="is-size-5">collection</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- /add-new-item -->
+
+            <!-- brand -->
+            <div class="column is-one-fifth is-offset-one-fifth">
+              <h1 class="is-size-1 has-text-centered has-text-grey-dark brand-text">bilgge.</h1>
+            </div>
+            <!-- /brand -->
+
+            <!-- user-actions -->
+            <div class="column is-one-fifth is-offset-one-fifth">
+              <div class="management-actions">
+                <button class="button is-white is-large has-text-grey">
+                  <span class="icon is-large">
+                    <i class="fas fa-tools"></i>
+                  </span>
+                </button>
+                <button class="button is-white is-large has-text-grey">
+                  <span class="icon is-large">
+                    <i class="fas fa-sign-out-alt"></i>
+                  </span>
+                </button>
+              </div>
+            </div>
+            <!-- /user-actions -->
+          </div>
+          <!-- /header -->
+
+          <!-- content-header -->
+          <div class="columns content-header">
+            <!-- collection-selector -->
+            <div class="column is-one-quarter">
+              <div class="control has-icons-left">
+                <div class="select is-fullwidth">
+                  <select>
+                    <option>collection-1</option>
+                    <option>other collection</option>
+                    <option>a collection</option>
+                  </select>
+                </div>
+                <span class="icon is-left">
+                  <i class="fas fa-folder"></i>
+                </span>
+              </div>
+            </div>
+            <!-- /collection-selector -->
+            <!-- search-box -->
+            <div class="column">
+              <div class="columns">
+                <div class="column is-half is-offset-one-quarter">
+                  <div class="control has-icons-right">
+                    <input class="input" type="search" placeholder="keyword">
+                    <span class="icon is-right">
+                      <i class="fas fa-search"></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- /search-box -->
+            <!-- content-actions -->
+            <div class="column is-one-quarter has-text-right">
+              <button class="button is-light is-danger">
+                <span class="icon is-large">
+                  <i class="fas fa-trash"></i>
+                </span>
+              </button>
+              <button class="button is-light">
+                <span class="icon is-large">
+                  <i class="fas fa-pen"></i>
+                </span>
+              </button>
+              <button class="button is-outlined">discard</button>
+              <button class="button is-warning">save.</button>
+            </div>
+            <!-- /content-actions -->
+          </div>
+          <!-- /content-header -->
+
+          <!-- content-wrapper -->
+          <div class="columns">
+            <!-- sidebar -->
+            <div class="column is-one-quarter">
+              <!-- pagination -->
+              <div class="columns is-1">
+                <div class="column is-one-fifth">
+                  <button class="button is-light is-small is-fullwidth">
+                    <span class="icon">
+                      <i class="fas fa-angle-double-left"></i>
+                    </span>
+                  </button>
+                </div>
+                <div class="column is-flex is-flex-direction-row is-justify-content-center is-align-items-center">
+                  <h2>0-10</h2>
+                </div>
+                <div class="column is-one-fifth">
+                  <button class="button is-light is-small is-fullwidth">
+                    <span class="icon">
+                      <i class="fas fa-angle-double-right"></i>
+                    </span>
+                  </button>
+                </div>
+              </div>
+              <!-- /pagination -->
+
+              <!-- listing-view -->
+              <div class="columns is-gapless is-multiline">
+                <!-- listing-item -->
+                <div class="column is-full listing-item">
+                  <div class="columns">
+                    <div class="column is-one-fifth is-flex is-flex-direction-row is-align-items-center is-justify-content-center has-text-grey">
+                      <span class="icon is-large">
+                        <i class="fas fa-sticky-note"></i>
+                      </span>
+                    </div>
+                    <div class="column has-text-grey">
+                      <h3 class="is-size-4">a sticky note title</h3>
+                      <p class="help">2021/03/01 16:45</p>
+                    </div>
+                  </div>
+                </div>
+                <!-- /listing-item -->
+                <!-- listing-item -->
+                <div class="column is-full listing-item active">
+                  <div class="columns">
+                    <div class="column is-one-fifth is-flex is-flex-direction-row is-align-items-center is-justify-content-center has-text-grey-dark">
+                      <span class="icon is-large">
+                        <i class="fas fa-keyboard"></i>
+                      </span>
+                    </div>
+                    <div class="column has-text-grey-dark">
+                      <h3 class="is-size-4">my passwords</h3>
+                      <p class="help">2021/03/01 16:45</p>
+                    </div>
+                  </div>
+                </div>
+                <!-- /listing-item -->
+                <!-- listing-item -->
+                <div class="column is-full listing-item">
+                  <div class="columns">
+                    <div class="column is-one-fifth is-flex is-flex-direction-row is-align-items-center is-justify-content-center has-text-grey">
+                      <span class="icon is-large">
+                        <i class="fas fa-keyboard"></i>
+                      </span>
+                    </div>
+                    <div class="column has-text-grey">
+                      <h3 class="is-size-4">my old passwords</h3>
+                      <p class="help">2021/03/01 16:45</p>
+                    </div>
+                  </div>
+                </div>
+                <!-- /listing-item -->
+              </div>
+              <!-- /listing-view -->
+            </div>
+            <!-- /sidebar -->
+
+            <!-- content -->
+            <div class="column">
+            </div>
+            <!-- /content -->
+          </div>
+          <!-- /content-wrapper -->
+        </div>
+      </section>
+  </body>
+</html>
