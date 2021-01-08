@@ -28,21 +28,20 @@
 
   :shadow-cljs {:nrepl {:port 8777}
                 
-                :builds {:app {:target :browser
-                               :output-dir "resources/public/js/compiled"
-                               :asset-path "/js/compiled"
-                               :modules {:app {:init-fn bilgge-ui.core/init
-                                               :preloads [devtools.preload
-                                                          day8.re-frame-10x.preload]}}
-                               :dev {:compiler-options {:closure-defines {re-frame.trace.trace-enabled? true
-                                                                          day8.re-frame.tracing.trace-enabled? true}}}
-                               :release {:build-options
-                                         {:ns-aliases
-                                          {day8.re-frame.tracing day8.re-frame.tracing-stubs}}}
+                :builds {:app
+                         {:target :browser
+                          :output-dir "resources/public/js/compiled"
+                          :asset-path "/js/compiled"
+                          :modules {:app {:init-fn bilgge-ui.core/init
+                                          :preloads [devtools.preload
+                                                     day8.re-frame-10x.preload]}}
+                          :dev {:compiler-options {:closure-defines {re-frame.trace.trace-enabled? true
+                                                                     day8.re-frame.tracing.trace-enabled? true}}}
+                          :release {:build-options {:ns-aliases {day8.re-frame.tracing day8.re-frame.tracing-stubs}}}
 
-                               :devtools {:http-root "resources/public"
-                                          :http-port 8280
-                                          }}
+                          :devtools {:http-root "resources/public"
+                                     :http-port 8280}}
+
                          :browser-test
                          {:target :browser-test
                           :ns-regexp "-test$"
@@ -54,7 +53,13 @@
                          :karma-test
                          {:target :karma
                           :ns-regexp "-test$"
-                          :output-to "target/karma-test.js"}}}
+                          :output-to "target/karma-test.js"
+                          :closure-defines {bilgge-ui.api/API-BASE-URL ~(System/getenv "API_BASE_URL")}}
+
+                         :pact
+                         {:target :node-script
+                          :main cljs.script/main
+                          :output-to "target/pack.js"}}}
   
   :shell {:commands {"karma" {:windows         ["cmd" "/c" "karma"]
                               :default-command "karma"}
@@ -66,7 +71,7 @@
                             ["shell" "echo" "\"DEPRECATED: Please use lein watch instead.\""]
                             ["watch"]]
             "watch"        ["with-profile" "dev" "do"
-                            ["shadow" "watch" "app" "browser-test" "karma-test"]]
+                            ["shadow" "watch" "app" "browser-test" "karma-test" "pact"]]
 
             "prod"         ["do"
                             ["shell" "echo" "\"DEPRECATED: Please use lein release instead.\""]
@@ -82,16 +87,25 @@
             "karma"        ["do"
                             ["shell" "echo" "\"DEPRECATED: Please use lein ci instead.\""]
                             ["ci"]]
-            "ci"           ["with-profile" "prod" "do"
+            "ci"           ["with-profile" "dev" "do"
                             ["shadow" "compile" "karma-test"]
-                            ["shell" "karma" "start" "--single-run" "--reporters" "junit,dots"]]}
+                            ["shell" "karma" "start" "--single-run" "--reporters" "junit,dots"]]
+            "pact-mock"    ["with-profile" "script" "do"
+                            ["shadow" "compile" "pact"]
+                            ["shell" "node" "target/pack.js" "server"]]
+            "pact-publish" ["with-profile" "script" "do"
+                            ["shadow" "compile" "pact"]
+                            ["shell" "node" "target/pack.js" "publish"]]}
 
   :profiles
   {:dev
    {:dependencies [[binaryage/devtools "1.0.2"]
                    [day8.re-frame/re-frame-10x "0.7.0"]
                    [day8.re-frame/test "0.1.5"]]
-    :source-paths ["dev"]}
+    :source-paths ["dev" "script"]}
+
+   :script
+   {:source-paths ["script"]}
 
    :prod {}
    
