@@ -2,7 +2,13 @@ module.exports = function (config) {
   var junitOutputDir = process.env.CIRCLE_TEST_REPORTS || "target/junit"
 
   config.set({
-    browsers: ['ChromeHeadless'],
+    browsers: ['ChromeWithoutSec'],
+    customLaunchers: {
+      ChromeWithoutSec: {
+        base: 'ChromeHeadless',
+        flags: ['--disable-web-security']
+      }
+    },
     basePath: 'target',
     files: ['karma-test.js'],
     frameworks: ['cljs-test'],
