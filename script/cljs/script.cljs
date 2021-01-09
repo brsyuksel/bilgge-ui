@@ -22,7 +22,8 @@
   "Zc/RUJ0hGphl+T/EQ34x6oLsxur8WTjP4a2nM7fztnatxJXwM6ZVwkHK//WfChlLkWEAKLQ8BVMcHI82O96oLY+ujM+b79Go4xMUM1TC5W1zT5RXCX3Fh7hZYIcsbFC26ftLgBkDMOZemfNv1vFgOCjSVVNZf1IGWblREfL3N8Y=")
 (def test-salt
   "CTTePGjU/5LJr2RzQ1uAqUUyvK7UrTjF8lmE59vWsNR3vNrxSDS+1qBqblDVZEiuWOAaPi5TkymLkWR5HpDvRRY5ceMF0BlHByWqkBbAaD3lKZv1W0HTROppygdgRi9LbL0GkZZ7uiMptq9iXl5hOrjb/2OUGnm4NgF4gcWx1JE=")
-
+(def test-cipher
+  "LyywH59U0sRaO/T/V/ZpCqntgO0Wk4XHqDanePMzTqKjnTUre0Cl2urc7ioQVsCVKGanuQGqdSszGvTc0NMeFtw1SVCx1touP2a9KKWZ8cUW2m2rJY00+gXx28zHpbDcZ3I3cq444JimoveT505+l5lixwNKfLxdMogeAxur590=")
 ;; ---------------------------------------------------------------------------------------
 
 (def register-success
@@ -56,6 +57,63 @@
 
 ;; ---------------------------------------------------------------------------------------
 
+(def login-request-not-found
+  (clj->js {:uponReceiving "not-existing user posts /login/request"
+            :withRequest {:method "POST"
+                          :path "/login/request"
+                          :headers {"Content-Type" "application/json"}
+                          :body {:username "not-existing"}}
+            :willRespondWith {:status 404
+                              :headers {"Content-Type" "application/json"}
+                              :body {:reason "not_found"
+                                     :messages ["user not found"]}}}))
+
+(def login-request-success
+  (clj->js {:uponReceiving "success post /login/request"
+            :withRequest {:method "POST"
+                          :path "/login/request"
+                          :headers {"Content-Type" "application/json"}
+                          :body {:username "ybaroj"}}
+            :willRespondWith {:status 200
+                              :headers {"Content-Type" "application/json"}
+                              :body {:cipher test-cipher}}}))
+
+(def login-authenticate-invalid
+  (clj->js {:uponReceiving "invalid plain text post /login/authenticate"
+            :withRequest {:method "POST"
+                          :path "/login/authenticate"
+                          :headers {"Content-Type" "application/json"}
+                          :body {:username "ybaroj"
+                                 :plain "base64-encoded-invalid-plain-text"}}
+            :willRespondWith {:status 401
+                              :headers {"Content-Type" "application/json"}
+                              :body {:reason "decryption"
+                                     :messages ["plain does not match"]}}}))
+
+(def login-authenticate-validation-error
+  (clj->js {:uponReceiving "empty plain text post /login/authenticate"
+            :withRequest {:method "POST"
+                          :path "/login/authenticate"
+                          :headers {"Content-Type" "application/json"}
+                          :body {:username "yb"
+                                 :plain ""}}
+            :willRespondWith {:status 400
+                              :headers {"Content-Type" "application/json"}
+                              :body {:reason "validation"
+                                     :messages ["plain can not be empty"]}}}))
+
+(def login-authenticate-success
+  (clj->js {:uponReceiving "invalid plain text post /login/authenticate"
+            :withRequest {:method "POST"
+                          :path "/login/authenticate"
+                          :headers {"Content-Type" "application/json"}
+                          :body {:username "ybaroj"
+                                 :plain "base64-encoded-valid-plain"}}
+            :willRespondWith {:status 200
+                              :headers {"Content-Type" "application/json"}
+                              :body {:token "your-jwt"}}}))
+
+;; ---------------------------------------------------------------------------------------
 (defn pact-server
   []
   (let [provider (pact/Pact. pact-opts)]
@@ -63,7 +121,12 @@
         .setup
         (.then #(do
                   (.addInteraction provider register-success)
-                  (.addInteraction provider register-validation-error))))
+                  (.addInteraction provider register-validation-error)
+                  (.addInteraction provider login-request-not-found)
+                  (.addInteraction provider login-request-success)
+                  (.addInteraction provider login-authenticate-invalid)
+                  (.addInteraction provider login-authenticate-validation-error)
+                  (.addInteraction provider login-authenticate-success))))
     (.on process "SIGINT" #(do
                              (.finalize provider)
                              (.removeAllServers pact)))))
