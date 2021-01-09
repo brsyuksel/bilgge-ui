@@ -8,9 +8,9 @@
   [_] "")                                                   ;TODO: replace with implementation
 
 (rf/reg-event-db
-  ::set-form-data
+  ::set-data
   (fn [db [_ k v]]
-    (assoc-in db [:login :form k] v)))
+    (assoc-in db [:login :data k] v)))
 
 (rf/reg-event-fx
   ::login-request
