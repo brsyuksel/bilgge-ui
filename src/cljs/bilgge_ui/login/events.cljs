@@ -29,7 +29,7 @@
 (rf/reg-event-fx
   ::login-request-ok
   (fn-traced [{:keys [db]} [_ response]]
-             (let [cipher (-> response :response :cipher)
+             (let [cipher (-> response :cipher)
                    plain (decrypt-login-cipher cipher)]
                (if-not plain
                  {:db (-> db
