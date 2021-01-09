@@ -14,11 +14,9 @@
 
 (rf/reg-event-fx
   ::login-request
-  (fn-traced [{:keys [db]} _]
-             (let [username (-> db :login :form :username)
-                   params {:username username}]
-               {:db (assoc-in db [:login :visibility :loading?] true)
-                :http-xhrio (api/login-request params [::login-request-ok] [::login-request-not-ok])})))
+  (fn-traced [{:keys [db]} [_ params]]
+             {:db (assoc-in db [:login :visibility :loading?] true)
+              :http-xhrio (api/login-request params [::login-request-ok] [::login-request-not-ok])}))
 
 (rf/reg-event-db
   ::login-request-not-ok
@@ -43,10 +41,9 @@
 
 (rf/reg-event-fx
   ::login-authenticate
-  (fn-traced [{:keys [db]} _]
-              (let [params (-> db :login :form)]
-                {:db db
-                 :http-xhrio (api/login-authenticate params [::login-authenticate-ok] [::login-authenticate-not-ok])})))
+  (fn-traced [{:keys [db]} [_ params]]
+             {:db db
+              :http-xhrio (api/login-authenticate params [::login-authenticate-ok] [::login-authenticate-not-ok])}))
 
 (rf/reg-event-db
   ::login-authenticate-not-ok

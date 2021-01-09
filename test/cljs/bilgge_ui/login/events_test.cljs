@@ -14,9 +14,8 @@
     (let [success? (rf/subscribe [::l-s/success?])
           response (rf/subscribe [::l-s/response-body])]
 
-      (rf/dispatch-sync [::l-e/set-form-data :username "not-existing"])
-
-      (rf/dispatch [::l-e/login-request])
+      (def params {:username "not-existing"})
+      (rf/dispatch [::l-e/login-request params])
       (rf-test/wait-for [::l-e/login-request-not-ok]
                         (is (false? @success?))
                         (is (= "not_found" (:reason @response)))
@@ -28,9 +27,8 @@
 
     (let [plain (rf/subscribe [::l-s/form-data :plain])]
 
-      (rf/dispatch-sync [::l-e/set-form-data :username "ybaroj"])
-
-      (rf/dispatch [::l-e/login-request])
+      (def params {:username "ybaroj"})
+      (rf/dispatch [::l-e/login-request params])
       (rf-test/wait-for [::l-e/login-request-ok]
                         (is (some? @plain))))))
 
@@ -40,10 +38,10 @@
 
     (let [response (rf/subscribe [::l-s/response-body])]
 
-      (rf/dispatch-sync [::l-e/set-form-data :username "ybaroj"])
-      (rf/dispatch-sync [::l-e/set-form-data :plain "base64-encoded-invalid-plain-text"])
+      (def params {:username "ybaroj"
+                   :plain "base64-encoded-invalid-plain-text"})
 
-      (rf/dispatch [::l-e/login-authenticate])
+      (rf/dispatch-sync [::l-e/login-authenticate params])
       (rf-test/wait-for [::l-e/login-authenticate-not-ok]
                         (is (= "decryption" (:reason @response)))
                         (is (= ["plain does not match"] (:messages @response)))))))
@@ -54,10 +52,10 @@
 
     (let [response (rf/subscribe [::l-s/response-body])]
 
-      (rf/dispatch-sync [::l-e/set-form-data :username "yb"])
-      (rf/dispatch-sync [::l-e/set-form-data :plain ""])
+      (def params {:username "yb"
+                   :plain ""})
 
-      (rf/dispatch [::l-e/login-authenticate])
+      (rf/dispatch-sync [::l-e/login-authenticate params])
       (rf-test/wait-for [::l-e/login-authenticate-not-ok]
                         (is (= "validation" (:reason @response)))
                         (is (= ["plain can not be empty"] (:messages @response)))))))
@@ -69,10 +67,9 @@
     (let [success? (rf/subscribe [::l-s/success?])
           token (rf/subscribe [::s/token])]
 
-      (rf/dispatch-sync [::l-e/set-form-data :username "ybaroj"])
-      (rf/dispatch-sync [::l-e/set-form-data :plain "base64-encoded-valid-plain"])
-
-      (rf/dispatch [::l-e/login-authenticate])
+      (def params {:username "ybaroj"
+                   :plain "base64-encoded-valid-plain"})
+      (rf/dispatch [::l-e/login-authenticate params])
       (rf-test/wait-for [::l-e/login-authenticate-ok]
                         (is (true? @success?))
                         (is (= "your-jwt" @token))))))

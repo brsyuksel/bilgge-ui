@@ -111,7 +111,10 @@
                                  :plain "base64-encoded-valid-plain"}}
             :willRespondWith {:status 200
                               :headers {"Content-Type" "application/json"}
-                              :body {:token "your-jwt"}}}))
+                              :body {:token "your-jwt"
+                                     :public_key "your-rsa-public-key"
+                                     :key "your-rsa-encrypted-aes-key"
+                                     :salt "your-rsa-encrypted-hash-salt"}}}))
 
 ;; ---------------------------------------------------------------------------------------
 (defn pact-server
