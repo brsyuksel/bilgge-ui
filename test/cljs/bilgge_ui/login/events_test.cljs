@@ -32,7 +32,7 @@
       (rf-test/wait-for [::l-e/login-request-ok]
                         (is (some? @plain))))))
 
-(deftest login-authenticate-with-invalid-plain
+#_(deftest login-authenticate-with-invalid-plain
   (rf-test/run-test-async
     (rf/dispatch-sync [::e/initialize-db])
 
