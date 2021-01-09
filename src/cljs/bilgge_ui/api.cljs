@@ -11,7 +11,7 @@
   ([method uri headers params on-success-v on-failure-v]
    {:method method
     :uri uri
-    :headers headers
+    :headers (merge {"Content-Type" "application/json"} headers)
     :params params
     :format (ajax/json-request-format)
     :response-format (ajax/json-response-format {:keywords? true})
@@ -65,7 +65,7 @@
 
 (defn collection-delete
   [id headers on-success-v on-failure-v]
-  (collection* id :delete headers nil on-success-v on-failure-v))
+  (collection* id :delete headers {:id id} on-success-v on-failure-v))
 
 ;; ---------------------------------------------------------------------------------------
 
