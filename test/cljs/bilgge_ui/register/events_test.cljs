@@ -19,12 +19,12 @@
 
     (let [success? (rf/subscribe [::r-s/success?])]
 
-      (rf/dispatch-sync [::r-e/set-form-data :username "ybaroj"])
-      (rf/dispatch-sync [::r-e/set-form-data :public_key test-public-key])
-      (rf/dispatch-sync [::r-e/set-form-data :key test-key])
-      (rf/dispatch-sync [::r-e/set-form-data :salt test-salt])
+      (def params {:username "ybaroj"
+                   :public_key test-public-key
+                   :key test-key
+                   :salt test-salt})
 
-      (rf/dispatch [::r-e/register])
+      (rf/dispatch [::r-e/register params])
       (rf-test/wait-for [::r-e/register-ok]
                         (is (true? @success?))))))
 
@@ -39,12 +39,12 @@
                            "key can not be empty"
                            "salt can not be empty"]]
 
-      (rf/dispatch-sync [::r-e/set-form-data :username "yb"])
-      (rf/dispatch-sync [::r-e/set-form-data :public_key nil])
-      (rf/dispatch-sync [::r-e/set-form-data :key ""])
-      (rf/dispatch-sync [::r-e/set-form-data :salt nil])
+      (def params {:username "yb"
+                   :public_key nil
+                   :key ""
+                   :salt nil})
 
-      (rf/dispatch [::r-e/register])
+      (rf/dispatch [::r-e/register params])
       (rf-test/wait-for [::r-e/register-not-ok]
                         (is (false? @success?))
                         (is (= "validation" (:reason @response)))

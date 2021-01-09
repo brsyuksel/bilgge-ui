@@ -19,12 +19,6 @@
     loading?))
 
 (rf/reg-sub
-  ::form-data
-  :<- [::register]
-  (fn [register [_ k]]
-    (-> register :form k)))
-
-(rf/reg-sub
   ::result
   :<- [::register]
   (fn [register [_ k]]

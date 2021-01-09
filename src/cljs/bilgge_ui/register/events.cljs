@@ -4,17 +4,11 @@
             [day8.re-frame.tracing :refer-macros [fn-traced]]
             [bilgge-ui.api :as api]))
 
-(rf/reg-event-db
-  ::set-form-data
-  (fn-traced [db [_ k v]]
-             (assoc-in db [:register :form k] v)))
-
 (rf/reg-event-fx
   ::register
-  (fn-traced [{:keys [db]} _]
-             (let [params (-> db :register :form)]
-               {:db (assoc-in db [:register :visibility :loading?] true)
-                :http-xhrio (api/register params [::register-ok] [::register-not-ok])})))
+  (fn-traced [{:keys [db]} [_ params]]
+             {:db (assoc-in db [:register :visibility :loading?] true)
+              :http-xhrio (api/register params [::register-ok] [::register-not-ok])}))
 
 (rf/reg-event-db
   ::register-ok
