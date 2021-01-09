@@ -117,6 +117,121 @@
                                      :salt "your-rsa-encrypted-hash-salt"}}}))
 
 ;; ---------------------------------------------------------------------------------------
+
+(def collections-unauthorized
+  (clj->js {:uponReceiving "unauthorized get /collections"
+            :withRequest {:method "GET"
+                          :path "/collections"
+                          :headers {"Content-Type" "application/json"
+                                    "Authorization" "Bearer"}}
+            :willRespondWith {:status 401
+                              :headers {"Content-Type" "application/json"}
+                              :body {:reason "authorization"
+                                     :messages ["permission denied"]}}}))
+
+(def collections-list
+  (clj->js {:uponReceiving "get /collections"
+            :withRequest {:method "GET"
+                          :path "/collections"
+                          :headers {"Content-Type" "application/json"
+                                    "Authorization" "Bearer valid-jwt"}}
+            :willRespondWith {:status 200
+                              :headers {"Content-Type" "application/json"}
+                              :body {:data [{:id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+                                             :name "encrypted-name-1"
+                                             :_iv "encrypted-iv-1"}
+                                            {:id "cd94c1bf-6af8-47f7-a03d-161cbf9dd868"
+                                             :name "encrypted-name-2"
+                                             :_iv "encrypted-iv-2"}]}}}))
+
+(def collection-create-validation-error
+  (clj->js {:uponReceiving "bad-request post /collections"
+            :withRequest {:method "POST"
+                          :path "/collections"
+                          :headers {"Content-Type" "application/json"
+                                    "Authorization" "Bearer valid-jwt"}
+                          :body {:name "" :_iv ""}}
+            :willRespondWith {:status 400
+                              :headers {"Content-Type" "application/json"}
+                              :body {:reason "validation"
+                                     :messages ["name can not be empty"
+                                                "_iv can not be empty"]}}}))
+
+(def collection-create-success
+  (clj->js {:uponReceiving "post /collections"
+            :withRequest {:method "POST"
+                          :path "/collections"
+                          :headers {"Content-Type" "application/json"
+                                    "Authorization" "Bearer valid-jwt"}
+                          :body {:name "encrypted-name" :_iv "encrypted-iv"}}
+            :willRespondWith {:status 201
+                              :headers {"Content-Type" "application/json"}
+                              :body {:id "2b08c749-a996-44b6-9d12-9398b3789861"
+                                     :name "new-enc-name"
+                                     :_iv "new-enc-iv"}}}))
+
+(def collection-edit-not-found-error
+  (clj->js {:uponReceiving "not-found put /collections/e413c43d-401e-4731-a80c-c87b050922a7"
+            :withRequest {:method "PUT"
+                          :path "/collections/e413c43d-401e-4731-a80c-c87b050922a7"
+                          :headers {"Content-Type" "application/json"
+                                    "Authorization" "Bearer valid-jwt"}
+                          :body {:name "encrypted-name" :_iv "encrypted-iv"}}
+            :willRespondWith {:status 404
+                              :headers {"Content-Type" "application/json"}
+                              :body {:reason "not_found"
+                                     :messages ["collection not found"]}}}))
+
+(def collection-edit-validation-error
+  (clj->js {:uponReceiving "bad-request put /collections/5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+            :withRequest {:method "PUT"
+                          :path "/collections/5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+                          :headers {"Content-Type" "application/json"
+                                    "Authorization" "Bearer valid-jwt"}
+                          :body {:name "" :_iv ""}}
+            :willRespondWith {:status 400
+                              :headers {"Content-Type" "application/json"}
+                              :body {:reason "validation"
+                                     :messages ["name can not be empty"
+                                                "_iv can not be empty"]}}}))
+
+(def collection-edit-success
+  (clj->js {:uponReceiving "put /collections/5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+            :withRequest {:method "PUT"
+                          :path "/collections/5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+                          :headers {"Content-Type" "application/json"
+                                    "Authorization" "Bearer valid-jwt"}
+                          :body {:name "enc-name" :_iv "enc-iv"}}
+            :willRespondWith {:status 200
+                              :headers {"Content-Type" "application/json"}
+                              :body {:id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+                                     :name "enc-name"
+                                     :_iv "enc-iv"}}}))
+
+(def collection-delete-not-found-error
+  (clj->js {:uponReceiving "not-found delete /collections/e413c43d-401e-4731-a80c-c87b050922a7"
+            :withRequest {:method "DELETE"
+                          :path "/collections/e413c43d-401e-4731-a80c-c87b050922a7"
+                          :headers {"Content-Type" "application/json"
+                                    "Authorization" "Bearer valid-jwt"}
+                          :body {:id "e413c43d-401e-4731-a80c-c87b050922a7"}}
+            :willRespondWith {:status 404
+                              :headers {"Content-Type" "application/json"}
+                              :body {:reason "not_found"
+                                     :messages ["collection not found"]}}}))
+
+(def collection-delete-success
+  (clj->js {:uponReceiving "delete /collections/5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+            :withRequest {:method "DELETE"
+                          :path "/collections/5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+                          :headers {"Content-Type" "application/json"
+                                    "Authorization" "Bearer valid-jwt"}
+                          :body {:id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"}}
+            :willRespondWith {:status 200
+                              :headers {"Content-Type" "application/json"}
+                              :body {:id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"}}}))
+
+;; ---------------------------------------------------------------------------------------
 (defn pact-server
   []
   (let [provider (pact/Pact. pact-opts)]
@@ -129,7 +244,16 @@
                   (.addInteraction provider login-request-success)
                   (.addInteraction provider login-authenticate-invalid)
                   (.addInteraction provider login-authenticate-validation-error)
-                  (.addInteraction provider login-authenticate-success))))
+                  (.addInteraction provider login-authenticate-success)
+                  (.addInteraction provider collections-unauthorized)
+                  (.addInteraction provider collections-list)
+                  (.addInteraction provider collection-create-validation-error)
+                  (.addInteraction provider collection-create-success)
+                  (.addInteraction provider collection-edit-not-found-error)
+                  (.addInteraction provider collection-edit-validation-error)
+                  (.addInteraction provider collection-edit-success)
+                  (.addInteraction provider collection-delete-not-found-error)
+                  (.addInteraction provider collection-delete-success))))
     (.on process "SIGINT" #(do
                              (.finalize provider)
                              (.removeAllServers pact)))))
