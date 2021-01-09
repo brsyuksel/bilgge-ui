@@ -12,10 +12,7 @@
 (rf/reg-event-fx
   ::register
   (fn-traced [{:keys [db]} _]
-             (let [params (-> db
-                              :register
-                              :form
-                              (select-keys [:username :public_key :key :salt]))]
+             (let [params (-> db :register :form)]
                {:db (assoc-in db [:register :visibility :loading?] true)
                 :http-xhrio (api/register params [::register-ok] [::register-not-ok])})))
 
