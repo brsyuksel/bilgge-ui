@@ -13,10 +13,10 @@
     (-> login :visibility k)))
 
 (rf/reg-sub
-  ::form-data
+  ::data
   :<- [::login]
   (fn [login [_ k]]
-    (-> login :form k)))
+    (-> login :data k)))
 
 (rf/reg-sub
   ::result

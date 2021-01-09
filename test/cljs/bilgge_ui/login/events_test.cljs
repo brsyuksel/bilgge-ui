@@ -25,7 +25,7 @@
   (rf-test/run-test-async
     (rf/dispatch-sync [::e/initialize-db])
 
-    (let [plain (rf/subscribe [::l-s/form-data :plain])]
+    (let [plain (rf/subscribe [::l-s/data :plain])]
 
       (def params {:username "ybaroj"})
       (rf/dispatch [::l-e/login-request params])

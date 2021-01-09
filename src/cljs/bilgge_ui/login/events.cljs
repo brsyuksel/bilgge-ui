@@ -36,7 +36,7 @@
                           (assoc-in [:login :visibility :loading?] false)
                           (assoc-in [:login :result :success] false)
                           (assoc-in [:login :result :error :messages] ["decryption failed"]))}
-                 {:db (assoc-in db [:login :form :plain] plain)
+                 {:db (assoc-in db [:login :data :plain] plain)
                   :dispatch [::login-authenticate]}))))
 
 (rf/reg-event-fx
@@ -59,4 +59,7 @@
              (-> db
                  (assoc-in [:login :visibility :loading?] false)
                  (assoc-in [:login :result :success] true)
-                 (assoc :token (-> response :token)))))
+                 (assoc :token (-> response :token))
+                 (assoc :public-key (-> response :public_key))
+                 (assoc :key (-> response :key))
+                 (assoc :salt (-> response :salt)))))
