@@ -12,9 +12,9 @@
     (rf/dispatch-sync [::e/initialize-db])
 
     (let [success? (rf/subscribe [::l-s/success?])
-          response (rf/subscribe [::l-s/response-body])]
+          response (rf/subscribe [::l-s/response-body])
+          params {:username "not-existing"}]
 
-      (def params {:username "not-existing"})
       (rf/dispatch [::l-e/login-request params])
       (rf-test/wait-for [::l-e/login-request-not-ok]
                         (is (false? @success?))
@@ -25,9 +25,9 @@
   (rf-test/run-test-async
     (rf/dispatch-sync [::e/initialize-db])
 
-    (let [plain (rf/subscribe [::l-s/data :plain])]
+    (let [plain (rf/subscribe [::l-s/data :plain])
+          params {:username "ybaroj"}]
 
-      (def params {:username "ybaroj"})
       (rf/dispatch [::l-e/login-request params])
       (rf-test/wait-for [::l-e/login-request-ok]
                         (is (some? @plain))))))
@@ -36,10 +36,9 @@
   (rf-test/run-test-async
     (rf/dispatch-sync [::e/initialize-db])
 
-    (let [response (rf/subscribe [::l-s/response-body])]
-
-      (def params {:username "ybaroj"
-                   :plain "base64-encoded-invalid-plain-text"})
+    (let [response (rf/subscribe [::l-s/response-body])
+          params {:username "ybaroj"
+                  :plain "base64-encoded-invalid-plain-text"}]
 
       (rf/dispatch-sync [::l-e/login-authenticate params])
       (rf-test/wait-for [::l-e/login-authenticate-not-ok]
@@ -50,10 +49,8 @@
   (rf-test/run-test-async
     (rf/dispatch-sync [::e/initialize-db])
 
-    (let [response (rf/subscribe [::l-s/response-body])]
-
-      (def params {:username "yb"
-                   :plain ""})
+    (let [response (rf/subscribe [::l-s/response-body])
+          params {:username "yb" :plain ""}]
 
       (rf/dispatch-sync [::l-e/login-authenticate params])
       (rf-test/wait-for [::l-e/login-authenticate-not-ok]
@@ -65,10 +62,10 @@
     (rf/dispatch-sync [::e/initialize-db])
 
     (let [success? (rf/subscribe [::l-s/success?])
-          token (rf/subscribe [::s/token])]
+          token (rf/subscribe [::s/token])
+          params {:username "ybaroj"
+                  :plain "base64-encoded-valid-plain"}]
 
-      (def params {:username "ybaroj"
-                   :plain "base64-encoded-valid-plain"})
       (rf/dispatch [::l-e/login-authenticate params])
       (rf-test/wait-for [::l-e/login-authenticate-ok]
                         (is (true? @success?))

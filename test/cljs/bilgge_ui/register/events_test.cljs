@@ -17,12 +17,11 @@
   (rf-test/run-test-async
     (rf/dispatch-sync [::e/initialize-db])
 
-    (let [success? (rf/subscribe [::r-s/success?])]
-
-      (def params {:username "ybaroj"
-                   :public_key test-public-key
-                   :key test-key
-                   :salt test-salt})
+    (let [success? (rf/subscribe [::r-s/success?])
+          params {:username "ybaroj"
+                  :public_key test-public-key
+                  :key test-key
+                  :salt test-salt}]
 
       (rf/dispatch [::r-e/register params])
       (rf-test/wait-for [::r-e/register-ok]
@@ -37,12 +36,11 @@
           expected-errors ["invalid username"
                            "public_key can not be empty"
                            "key can not be empty"
-                           "salt can not be empty"]]
-
-      (def params {:username "yb"
-                   :public_key nil
-                   :key ""
-                   :salt nil})
+                           "salt can not be empty"]
+          params {:username "yb"
+                  :public_key nil
+                  :key ""
+                  :salt nil}]
 
       (rf/dispatch [::r-e/register params])
       (rf-test/wait-for [::r-e/register-not-ok]
