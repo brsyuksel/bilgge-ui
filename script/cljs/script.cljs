@@ -16,8 +16,6 @@
        :consumer "bilggeUi"
        :provider "bilggeApi"})
 
-(def test-cipher
-  "LyywH59U0sRaO/T/V/ZpCqntgO0Wk4XHqDanePMzTqKjnTUre0Cl2urc7ioQVsCVKGanuQGqdSszGvTc0NMeFtw1SVCx1touP2a9KKWZ8cUW2m2rJY00+gXx28zHpbDcZ3I3cq444JimoveT505+l5lixwNKfLxdMogeAxur590=")
 ;; ---------------------------------------------------------------------------------------
 
 (def register-success
@@ -70,7 +68,7 @@
                           :body {:username "ybaroj"}}
             :willRespondWith {:status 200
                               :headers {"Content-Type" "application/json"}
-                              :body {:cipher test-cipher}}}))
+                              :body {:cipher "test-cipher"}}}))
 
 (def login-authenticate-invalid
   (clj->js {:uponReceiving "invalid plain text post /login/authenticate"
