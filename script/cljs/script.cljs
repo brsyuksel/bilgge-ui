@@ -1,7 +1,8 @@
 (ns cljs.script
   (:require ["process" :as process]
             ["path" :as path]
-            ["@pact-foundation/pact" :as pact]))
+            ["@pact-foundation/pact" :as pact]
+            ["jsonwebtoken" :as jwt]))
 
 (def pact-file (.resolve path "./.pacts/bilggeui-bilggeapi.json"))
 
@@ -19,11 +20,16 @@
 (def matchers pact/Matchers)
 (def like #(.like matchers %))
 (def each-like #(.eachLike matchers (clj->js %)))
+(defn term [match generate] (.term matchers (clj->js {:generate generate
+                                                      :matcher match})))
 
 ;; ---------------------------------------------------------------------------------------
 
 (def valid-plain "ZLer5Jkqmn3KId7WckRGVSBqCqD0raxb")
-
+(def jwt-ci-secret "jwt-ci-secret")
+(def valid-token (.sign jwt (clj->js {:username "ybaroj"}) jwt-ci-secret (clj->js {:expiresIn "6h"})))
+(def bearer (str "Bearer " valid-token))
+(def valid-bearer (term "Bearer\\s[a-zA-Z0-9._-]{1,}$" bearer))
 ;; ---------------------------------------------------------------------------------------
 
 (def register-success
@@ -134,7 +140,7 @@
             :withRequest {:method "GET"
                           :path "/collections"
                           :headers {"Content-Type" "application/json"
-                                    "Authorization" "Bearer valid-jwt"}}
+                                    "Authorization" valid-bearer}}
             :willRespondWith {:status 200
                               :headers {"Content-Type" "application/json"}
                               :body {:data (each-like {:id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
@@ -146,7 +152,7 @@
             :withRequest {:method "POST"
                           :path "/collections"
                           :headers {"Content-Type" "application/json"
-                                    "Authorization" "Bearer valid-jwt"}
+                                    "Authorization" valid-bearer}
                           :body {:name "" :_iv ""}}
             :willRespondWith {:status 400
                               :headers {"Content-Type" "application/json"}
@@ -159,7 +165,7 @@
             :withRequest {:method "POST"
                           :path "/collections"
                           :headers {"Content-Type" "application/json"
-                                    "Authorization" "Bearer valid-jwt"}
+                                    "Authorization" valid-bearer}
                           :body {:name "encrypted-name" :_iv "encrypted-iv"}}
             :willRespondWith {:status 201
                               :headers {"Content-Type" "application/json"}
@@ -172,7 +178,7 @@
             :withRequest {:method "PUT"
                           :path "/collections/e413c43d-401e-4731-a80c-c87b050922a7"
                           :headers {"Content-Type" "application/json"
-                                    "Authorization" "Bearer valid-jwt"}
+                                    "Authorization" valid-bearer}
                           :body {:name "encrypted-name" :_iv "encrypted-iv"}}
             :willRespondWith {:status 404
                               :headers {"Content-Type" "application/json"}
@@ -184,7 +190,7 @@
             :withRequest {:method "PUT"
                           :path "/collections/5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
                           :headers {"Content-Type" "application/json"
-                                    "Authorization" "Bearer valid-jwt"}
+                                    "Authorization" valid-bearer}
                           :body {:name "" :_iv ""}}
             :willRespondWith {:status 400
                               :headers {"Content-Type" "application/json"}
@@ -197,7 +203,7 @@
             :withRequest {:method "PUT"
                           :path "/collections/5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
                           :headers {"Content-Type" "application/json"
-                                    "Authorization" "Bearer valid-jwt"}
+                                    "Authorization" valid-bearer}
                           :body {:name "enc-name" :_iv "enc-iv"}}
             :willRespondWith {:status 200
                               :headers {"Content-Type" "application/json"}
@@ -210,7 +216,7 @@
             :withRequest {:method "DELETE"
                           :path "/collections/e413c43d-401e-4731-a80c-c87b050922a7"
                           :headers {"Content-Type" "application/json"
-                                    "Authorization" "Bearer valid-jwt"}
+                                    "Authorization" valid-bearer}
                           :body {:id "e413c43d-401e-4731-a80c-c87b050922a7"}}
             :willRespondWith {:status 404
                               :headers {"Content-Type" "application/json"}
@@ -222,7 +228,7 @@
             :withRequest {:method "DELETE"
                           :path "/collections/5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
                           :headers {"Content-Type" "application/json"
-                                    "Authorization" "Bearer valid-jwt"}
+                                    "Authorization" valid-bearer}
                           :body {:id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"}}
             :willRespondWith {:status 200
                               :headers {"Content-Type" "application/json"}
@@ -248,7 +254,7 @@
             :withRequest {:method "GET"
                           :path "/secrets"
                           :headers {"Content-Type" "application/json"
-                                    "Authorization" "Bearer valid-jwt"}
+                                    "Authorization" valid-bearer}
                           :query {:collection_id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
                                   :page "1"}}
             :willRespondWith {:status 200
@@ -266,7 +272,7 @@
             :withRequest {:method "POST"
                           :path "/secrets"
                           :headers {"Content-Type" "application/json"
-                                    "Authorization" "Bearer valid-jwt"}
+                                    "Authorization" valid-bearer}
                           :body {:collection_id "" :type "" :title "" :content "" :_iv "" :hashes []}}
             :willRespondWith {:status 400
                               :headers {"Content-Type" "application/json"}
@@ -283,7 +289,7 @@
             :withRequest {:method "POST"
                           :path "/secrets"
                           :headers {"Content-Type" "application/json"
-                                    "Authorization" "Bearer valid-jwt"}
+                                    "Authorization" valid-bearer}
                           :body {:collection_id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
                                  :type "new-enc-type"
                                  :title "new-enc-title"
@@ -302,7 +308,7 @@
             :withRequest {:method "GET"
                           :path "/secrets/9a50af13-b8f7-44cf-ad07-5a2fefc1db22"
                           :headers {"Content-Type" "application/json"
-                                    "Authorization" "Bearer valid-jwt"}}
+                                    "Authorization" valid-bearer}}
             :willRespondWith {:status 404
                               :headers {"Content-Type" "application/json"}
                               :body {:reason "not_found"
@@ -313,7 +319,7 @@
             :withRequest {:method "GET"
                           :path "/secrets/2b08c749-a996-44b6-9d12-9398b3789861"
                           :headers {"Content-Type" "application/json"
-                                    "Authorization" "Bearer valid-jwt"}}
+                                    "Authorization" valid-bearer}}
             :willRespondWith {:status 200
                               :headers {"Content-Type" "application/json"}
                               :body {:id (like "2b08c749-a996-44b6-9d12-9398b3789861")
@@ -328,7 +334,7 @@
             :withRequest {:method "PUT"
                           :path "/secrets/9a50af13-b8f7-44cf-ad07-5a2fefc1db22"
                           :headers {"Content-Type" "application/json"
-                                    "Authorization" "Bearer valid-jwt"}
+                                    "Authorization" valid-bearer}
                           :body {:type "new-enc-type"
                                  :title "new-enc-title"
                                  :content "new-enc-content"
@@ -343,7 +349,7 @@
             :withRequest {:method "PUT"
                           :path "/secrets/2b08c749-a996-44b6-9d12-9398b3789861"
                           :headers {"Content-Type" "application/json"
-                                    "Authorization" "Bearer valid-jwt"}
+                                    "Authorization" valid-bearer}
                           :body {:type ""
                                  :title ""
                                  :content ""
@@ -363,7 +369,7 @@
             :withRequest {:method "PUT"
                           :path "/secrets/2b08c749-a996-44b6-9d12-9398b3789861"
                           :headers {"Content-Type" "application/json"
-                                    "Authorization" "Bearer valid-jwt"}
+                                    "Authorization" valid-bearer}
                           :body {:type "new-enc-type"
                                  :title "new-enc-title"
                                  :content "new-enc-content"
@@ -381,7 +387,7 @@
             :withRequest {:method "DELETE"
                           :path "/secrets/9a50af13-b8f7-44cf-ad07-5a2fefc1db22"
                           :headers {"Content-Type" "application/json"
-                                    "Authorization" "Bearer valid-jwt"}
+                                    "Authorization" valid-bearer}
                           :body {:id "9a50af13-b8f7-44cf-ad07-5a2fefc1db22"}}
             :willRespondWith {:status 404
                               :headers {"Content-Type" "application/json"}
@@ -393,7 +399,7 @@
             :withRequest {:method "DELETE"
                           :path "/secrets/2b08c749-a996-44b6-9d12-9398b3789861"
                           :headers {"Content-Type" "application/json"
-                                    "Authorization" "Bearer valid-jwt"}
+                                    "Authorization" valid-bearer}
                           :body {:id "2b08c749-a996-44b6-9d12-9398b3789861"}}
             :willRespondWith {:status 200
                               :headers {"Content-Type" "application/json"}
