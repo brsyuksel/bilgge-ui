@@ -33,9 +33,9 @@
 
     (let [success? (rf/subscribe [::c-s/success?])
           data (rf/subscribe [::c-s/data])
-          expected-names ["encrypted-name-1" "encrypted-name-2"]
-          expected-ivs ["encrypted-iv-1" "encrypted-iv-2"]
-          expected-ids ["5f6a97a3-52eb-44b2-983f-de9fc5bea7b8" "cd94c1bf-6af8-47f7-a03d-161cbf9dd868"]]
+          expected-names ["encrypted-name-1"]
+          expected-ivs ["encrypted-iv-1"]
+          expected-ids ["5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"]]
 
       (rf/dispatch [::c-e/get-collections])
       (rf-test/wait-for [::c-e/get-collections-ok]

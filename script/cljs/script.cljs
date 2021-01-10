@@ -16,6 +16,14 @@
        :consumer "bilggeUi"
        :provider "bilggeApi"})
 
+(def matchers pact/Matchers)
+(def like #(.like matchers %))
+(def each-like #(.eachLike matchers (clj->js %)))
+
+;; ---------------------------------------------------------------------------------------
+
+(def valid-plain "ZLer5Jkqmn3KId7WckRGVSBqCqD0raxb")
+
 ;; ---------------------------------------------------------------------------------------
 
 (def register-success
@@ -23,12 +31,12 @@
             :withRequest {:method "POST"
                           :path "/register"
                           :headers {"Content-Type" "application/json"}
-                          :body {:username "ybaroj"
+                          :body {:username (like "test-user")
                                  :public_key "test-public-key"
                                  :key "test-key"
                                  :salt "test-salt"}}
             :willRespondWith {:status 201
-                              :body {:username "ybaroj"}}}))
+                              :body {:username (like "test-user")}}}))
 
 (def register-validation-error
   (clj->js {:uponReceiving "invalid post /register"
@@ -68,7 +76,7 @@
                           :body {:username "ybaroj"}}
             :willRespondWith {:status 200
                               :headers {"Content-Type" "application/json"}
-                              :body {:cipher "test-cipher"}}}))
+                              :body {:cipher (like "test-cipher")}}}))
 
 (def login-authenticate-invalid
   (clj->js {:uponReceiving "invalid plain text post /login/authenticate"
@@ -100,13 +108,13 @@
                           :path "/login/authenticate"
                           :headers {"Content-Type" "application/json"}
                           :body {:username "ybaroj"
-                                 :plain "base64-encoded-valid-plain"}}
+                                 :plain (like valid-plain)}}
             :willRespondWith {:status 200
                               :headers {"Content-Type" "application/json"}
-                              :body {:token "your-jwt"
-                                     :public_key "your-rsa-public-key"
-                                     :key "your-rsa-encrypted-aes-key"
-                                     :salt "your-rsa-encrypted-hash-salt"}}}))
+                              :body {:token (like "your-jwt")
+                                     :public_key (like "your-rsa-public-key")
+                                     :key (like "your-rsa-encrypted-aes-key")
+                                     :salt (like "your-rsa-encrypted-hash-salt")}}}))
 
 ;; ---------------------------------------------------------------------------------------
 
@@ -129,12 +137,9 @@
                                     "Authorization" "Bearer valid-jwt"}}
             :willRespondWith {:status 200
                               :headers {"Content-Type" "application/json"}
-                              :body {:data [{:id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
-                                             :name "encrypted-name-1"
-                                             :_iv "encrypted-iv-1"}
-                                            {:id "cd94c1bf-6af8-47f7-a03d-161cbf9dd868"
-                                             :name "encrypted-name-2"
-                                             :_iv "encrypted-iv-2"}]}}}))
+                              :body {:data (each-like {:id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+                                                       :name "encrypted-name-1"
+                                                       :_iv "encrypted-iv-1"})}}}))
 
 (def collection-create-validation-error
   (clj->js {:uponReceiving "bad-request post /collections"
@@ -158,9 +163,9 @@
                           :body {:name "encrypted-name" :_iv "encrypted-iv"}}
             :willRespondWith {:status 201
                               :headers {"Content-Type" "application/json"}
-                              :body {:id "2b08c749-a996-44b6-9d12-9398b3789861"
-                                     :name "new-enc-name"
-                                     :_iv "new-enc-iv"}}}))
+                              :body {:id (like "2b08c749-a996-44b6-9d12-9398b3789861")
+                                     :name (like "new-enc-name")
+                                     :_iv (like "new-enc-iv")}}}))
 
 (def collection-edit-not-found-error
   (clj->js {:uponReceiving "not-found put /collections/e413c43d-401e-4731-a80c-c87b050922a7"
@@ -197,8 +202,8 @@
             :willRespondWith {:status 200
                               :headers {"Content-Type" "application/json"}
                               :body {:id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
-                                     :name "enc-name"
-                                     :_iv "enc-iv"}}}))
+                                     :name (like "enc-name")
+                                     :_iv (like "enc-iv")}}}))
 
 (def collection-delete-not-found-error
   (clj->js {:uponReceiving "not-found delete /collections/e413c43d-401e-4731-a80c-c87b050922a7"
@@ -250,11 +255,11 @@
                               :headers {"Content-Type" "application/json"}
                               :body {:pagination {:page 1
                                                   :count 1}
-                                     :data [{:id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
-                                             :type "encrypted-type-1"
-                                             :title "encrypted-title-1"
-                                             :_iv "encrypted-iv-1"
-                                             :modified_at 1610230065}]}}}))
+                                     :data (each-like {:id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+                                                       :type "encrypted-type-1"
+                                                       :title "encrypted-title-1"
+                                                       :_iv "encrypted-iv-1"
+                                                       :modified_at 1610230065})}}}))
 
 (def secret-create-validation-error
   (clj->js {:uponReceiving "bad-request post /secrets"
@@ -287,10 +292,10 @@
                                  :hashes ["title-hash-1"]}}
             :willRespondWith {:status 201
                               :headers {"Content-Type" "application/json"}
-                              :body {:id "2b08c749-a996-44b6-9d12-9398b3789861"
-                                     :type "new-enc-type"
-                                     :title "new-enc-title"
-                                     :_iv "new-enc-iv"}}}))
+                              :body {:id (like "2b08c749-a996-44b6-9d12-9398b3789861")
+                                     :type (like "new-enc-type")
+                                     :title (like "new-enc-title")
+                                     :_iv (like "new-enc-iv")}}}))
 
 (def secret-detail-not-found
   (clj->js {:uponReceiving "not-found get /secrets/9a50af13-b8f7-44cf-ad07-5a2fefc1db22"
@@ -311,12 +316,12 @@
                                     "Authorization" "Bearer valid-jwt"}}
             :willRespondWith {:status 200
                               :headers {"Content-Type" "application/json"}
-                              :body {:id "2b08c749-a996-44b6-9d12-9398b3789861"
-                                     :collection_id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
-                                     :type "new-enc-type"
-                                     :title "new-enc-title"
-                                     :content "new-enc-content"
-                                     :_iv "new-enc-iv"}}}))
+                              :body {:id (like "2b08c749-a996-44b6-9d12-9398b3789861")
+                                     :collection_id (like "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8")
+                                     :type (like "new-enc-type")
+                                     :title (like "new-enc-title")
+                                     :content (like "new-enc-content")
+                                     :_iv (like "new-enc-iv")}}}))
 
 (def secret-edit-not-found-error
   (clj->js {:uponReceiving "not-found put /secrets/9a50af13-b8f7-44cf-ad07-5a2fefc1db22"
@@ -366,10 +371,10 @@
                                  :hashes ["title-hash-1"]}}
             :willRespondWith {:status 200
                               :headers {"Content-Type" "application/json"}
-                              :body {:id "2b08c749-a996-44b6-9d12-9398b3789861"
-                                     :type "new-enc-type"
-                                     :title "new-enc-title"
-                                     :_iv "new-enc-iv"}}}))
+                              :body {:id (like "2b08c749-a996-44b6-9d12-9398b3789861")
+                                     :type (like "new-enc-type")
+                                     :title (like "new-enc-title")
+                                     :_iv (like "new-enc-iv")}}}))
 
 (def secret-delete-not-found-error
   (clj->js {:uponReceiving "not-found delete /secrets/9a50af13-b8f7-44cf-ad07-5a2fefc1db22"
@@ -392,7 +397,7 @@
                           :body {:id "2b08c749-a996-44b6-9d12-9398b3789861"}}
             :willRespondWith {:status 200
                               :headers {"Content-Type" "application/json"}
-                              :body {:id "2b08c749-a996-44b6-9d12-9398b3789861"}}}))
+                              :body {:id (like "2b08c749-a996-44b6-9d12-9398b3789861")}}}))
 
 ;; ---------------------------------------------------------------------------------------
 (defn pact-server
