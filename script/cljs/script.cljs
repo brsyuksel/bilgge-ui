@@ -232,6 +232,177 @@
                               :body {:id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"}}}))
 
 ;; ---------------------------------------------------------------------------------------
+
+(def secrets-unauthorized
+  (clj->js {:uponReceiving "unauthorized get /secrets"
+            :withRequest {:method "GET"
+                          :path "/secrets"
+                          :headers {"Content-Type" "application/json"
+                                    "Authorization" "Bearer"}
+                          :query {:collection_id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+                                  :page "1"}}
+            :willRespondWith {:status 401
+                              :headers {"Content-Type" "application/json"}
+                              :body {:reason "authorization"
+                                     :messages ["permission denied"]}}}))
+
+(def secrets-list
+  (clj->js {:uponReceiving "get /secrets"
+            :withRequest {:method "GET"
+                          :path "/secrets"
+                          :headers {"Content-Type" "application/json"
+                                    "Authorization" "Bearer valid-jwt"}
+                          :query {:collection_id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+                                  :page "1"}}
+            :willRespondWith {:status 200
+                              :headers {"Content-Type" "application/json"}
+                              :body {:pagination {:page 1
+                                                  :count 1}
+                                     :data [{:id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+                                             :type "encrypted-type-1"
+                                             :title "encrypted-title-1"
+                                             :_iv "encrypted-iv-1"
+                                             :modified_at 1610230065}]}}}))
+
+(def secret-create-validation-error
+  (clj->js {:uponReceiving "bad-request post /secrets"
+            :withRequest {:method "POST"
+                          :path "/secrets"
+                          :headers {"Content-Type" "application/json"
+                                    "Authorization" "Bearer valid-jwt"}
+                          :body {:collection_id "" :type "" :title "" :content "" :_iv "" :hashes []}}
+            :willRespondWith {:status 400
+                              :headers {"Content-Type" "application/json"}
+                              :body {:reason "validation"
+                                     :messages ["collection_id can not be empty"
+                                                "type can not be empty"
+                                                "title can not be empty"
+                                                "content can not be empty"
+                                                "_iv can not be empty"
+                                                "hashes can not be empty"]}}}))
+
+(def secret-create-success
+  (clj->js {:uponReceiving "post /secrets"
+            :withRequest {:method "POST"
+                          :path "/secrets"
+                          :headers {"Content-Type" "application/json"
+                                    "Authorization" "Bearer valid-jwt"}
+                          :body {:collection_id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+                                 :type "new-enc-type"
+                                 :title "new-enc-title"
+                                 :content "new-enc-content"
+                                 :_iv "new-enc-iv"
+                                 :hashes ["title-hash-1"]}}
+            :willRespondWith {:status 201
+                              :headers {"Content-Type" "application/json"}
+                              :body {:id "2b08c749-a996-44b6-9d12-9398b3789861"
+                                     :type "new-enc-type"
+                                     :title "new-enc-title"
+                                     :_iv "new-enc-iv"}}}))
+
+(def secret-detail-not-found
+  (clj->js {:uponReceiving "not-found get /secrets/9a50af13-b8f7-44cf-ad07-5a2fefc1db22"
+            :withRequest {:method "GET"
+                          :path "/secrets/9a50af13-b8f7-44cf-ad07-5a2fefc1db22"
+                          :headers {"Content-Type" "application/json"
+                                    "Authorization" "Bearer valid-jwt"}}
+            :willRespondWith {:status 404
+                              :headers {"Content-Type" "application/json"}
+                              :body {:reason "not_found"
+                                     :messages ["secret not found"]}}}))
+
+(def secret-detail
+  (clj->js {:uponReceiving "get /secrets/2b08c749-a996-44b6-9d12-9398b3789861"
+            :withRequest {:method "GET"
+                          :path "/secrets/2b08c749-a996-44b6-9d12-9398b3789861"
+                          :headers {"Content-Type" "application/json"
+                                    "Authorization" "Bearer valid-jwt"}}
+            :willRespondWith {:status 200
+                              :headers {"Content-Type" "application/json"}
+                              :body {:id "2b08c749-a996-44b6-9d12-9398b3789861"
+                                     :collection_id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+                                     :type "new-enc-type"
+                                     :title "new-enc-title"
+                                     :content "new-enc-content"
+                                     :_iv "new-enc-iv"}}}))
+
+(def secret-edit-not-found-error
+  (clj->js {:uponReceiving "not-found put /secrets/9a50af13-b8f7-44cf-ad07-5a2fefc1db22"
+            :withRequest {:method "PUT"
+                          :path "/secrets/9a50af13-b8f7-44cf-ad07-5a2fefc1db22"
+                          :headers {"Content-Type" "application/json"
+                                    "Authorization" "Bearer valid-jwt"}
+                          :body {:type "new-enc-type"
+                                 :title "new-enc-title"
+                                 :content "new-enc-content"
+                                 :_iv "new-enc-iv"}}
+            :willRespondWith {:status 404
+                              :headers {"Content-Type" "application/json"}
+                              :body {:reason "not_found"
+                                     :messages ["secret not found"]}}}))
+
+(def secret-edit-validation-error
+  (clj->js {:uponReceiving "bad-request put /secrets/2b08c749-a996-44b6-9d12-9398b3789861"
+            :withRequest {:method "PUT"
+                          :path "/secrets/2b08c749-a996-44b6-9d12-9398b3789861"
+                          :headers {"Content-Type" "application/json"
+                                    "Authorization" "Bearer valid-jwt"}
+                          :body {:type ""
+                                 :title ""
+                                 :content ""
+                                 :_iv ""
+                                 :hashes []}}
+            :willRespondWith {:status 404
+                              :headers {"Content-Type" "application/json"}
+                              :body {:reason "validation"
+                                     :messages ["type can not be empty"
+                                                "title can not be empty"
+                                                "content can not be empty"
+                                                "_iv can not be empty"
+                                                "hashes can not be empty"]}}}))
+
+(def secret-edit-success
+  (clj->js {:uponReceiving "put /secrets/2b08c749-a996-44b6-9d12-9398b3789861"
+            :withRequest {:method "PUT"
+                          :path "/secrets/2b08c749-a996-44b6-9d12-9398b3789861"
+                          :headers {"Content-Type" "application/json"
+                                    "Authorization" "Bearer valid-jwt"}
+                          :body {:type "new-enc-type"
+                                 :title "new-enc-title"
+                                 :content "new-enc-content"
+                                 :_iv "new-enc-iv"
+                                 :hashes ["title-hash-1"]}}
+            :willRespondWith {:status 200
+                              :headers {"Content-Type" "application/json"}
+                              :body {:id "2b08c749-a996-44b6-9d12-9398b3789861"
+                                     :type "new-enc-type"
+                                     :title "new-enc-title"
+                                     :_iv "new-enc-iv"}}}))
+
+(def secret-delete-not-found-error
+  (clj->js {:uponReceiving "not-found delete /secrets/9a50af13-b8f7-44cf-ad07-5a2fefc1db22"
+            :withRequest {:method "DELETE"
+                          :path "/secrets/9a50af13-b8f7-44cf-ad07-5a2fefc1db22"
+                          :headers {"Content-Type" "application/json"
+                                    "Authorization" "Bearer valid-jwt"}
+                          :body {:id "9a50af13-b8f7-44cf-ad07-5a2fefc1db22"}}
+            :willRespondWith {:status 404
+                              :headers {"Content-Type" "application/json"}
+                              :body {:reason "not_found"
+                                     :messages ["secret not found"]}}}))
+
+(def secret-delete-success
+  (clj->js {:uponReceiving "delete /secrets/2b08c749-a996-44b6-9d12-9398b3789861"
+            :withRequest {:method "DELETE"
+                          :path "/secrets/2b08c749-a996-44b6-9d12-9398b3789861"
+                          :headers {"Content-Type" "application/json"
+                                    "Authorization" "Bearer valid-jwt"}
+                          :body {:id "2b08c749-a996-44b6-9d12-9398b3789861"}}
+            :willRespondWith {:status 200
+                              :headers {"Content-Type" "application/json"}
+                              :body {:id "2b08c749-a996-44b6-9d12-9398b3789861"}}}))
+
+;; ---------------------------------------------------------------------------------------
 (defn pact-server
   []
   (let [provider (pact/Pact. pact-opts)]
@@ -253,7 +424,18 @@
                   (.addInteraction provider collection-edit-validation-error)
                   (.addInteraction provider collection-edit-success)
                   (.addInteraction provider collection-delete-not-found-error)
-                  (.addInteraction provider collection-delete-success))))
+                  (.addInteraction provider collection-delete-success)
+                  (.addInteraction provider secrets-unauthorized)
+                  (.addInteraction provider secrets-list)
+                  (.addInteraction provider secret-create-validation-error)
+                  (.addInteraction provider secret-create-success)
+                  (.addInteraction provider secret-detail-not-found)
+                  (.addInteraction provider secret-detail)
+                  (.addInteraction provider secret-edit-not-found-error)
+                  (.addInteraction provider secret-edit-validation-error)
+                  (.addInteraction provider secret-edit-success)
+                  (.addInteraction provider secret-delete-not-found-error)
+                  (.addInteraction provider secret-delete-success))))
     (.on process "SIGINT" #(do
                              (.finalize provider)
                              (.removeAllServers pact)))))

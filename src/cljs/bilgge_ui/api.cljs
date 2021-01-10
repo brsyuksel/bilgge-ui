@@ -99,4 +99,4 @@
 
 (defn secret-delete
   [id headers on-success-v on-failure-v]
-  (secret* id :delete headers nil on-success-v on-failure-v))
+  (secret* id :delete headers {:id id} on-success-v on-failure-v))
