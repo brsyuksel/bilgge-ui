@@ -440,9 +440,17 @@
                              (.finalize provider)
                              (.removeAllServers pact)))))
 
+(def publish-opts
+  (clj->js {:pactFilesOrDirs [pact-file]
+            :consumerVersion (.. process -env -CONSUMER_VERSION)
+            :pactBroker (.. process -env -PACT_BROKER)
+            :pactBrokerToken (.. process -env -PACT_BROKER_TOKEN)}))
+
 (defn pact-publish
   []
-  (prn "publisher"))
+  (let [publisher (pact/Publisher. publish-opts)]
+    (prn publish-opts)
+    (.publishPacts publisher)))
 
 (defn main
   [& args]
