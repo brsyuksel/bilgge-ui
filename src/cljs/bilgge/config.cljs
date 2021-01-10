@@ -1,4 +1,4 @@
-(ns bilgge-ui.config)
+(ns bilgge.config)
 
 (def debug?
   ^boolean goog.DEBUG)

@@ -1,10 +1,10 @@
-(ns bilgge-ui.core
+(ns bilgge.core
   (:require
    [reagent.dom :as rdom]
    [re-frame.core :as re-frame]
-   [bilgge-ui.events :as events]
-   [bilgge-ui.views :as views]
-   [bilgge-ui.config :as config]
+   [bilgge.events :as events]
+   [bilgge.views :as views]
+   [bilgge.config :as config]
    ))
 
 

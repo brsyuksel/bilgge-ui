@@ -1,28 +1,28 @@
-(ns bilgge-ui.login.subs
+(ns bilgge.collections.subs
   (:require [re-frame.core :as rf]))
 
 (rf/reg-sub
-  ::login
+  ::collections
   (fn [db _]
-    (:login db)))
+    (:collections db)))
 
 (rf/reg-sub
   ::visibility
-  :<- [::login]
-  (fn [login [_ k]]
-    (-> login :visibility k)))
+  :<- [::collections]
+  (fn [collections [_ k]]
+    (-> collections :visibility k)))
 
 (rf/reg-sub
   ::data
-  :<- [::login]
-  (fn [login [_ k]]
-    (-> login :data k)))
+  :<- [::collections]
+  (fn [collections _]
+    (-> collections :data)))
 
 (rf/reg-sub
   ::result
-  :<- [::login]
-  (fn [login [_ k]]
-    (-> login :result k)))
+  :<- [::collections]
+  (fn [collections [_ k]]
+    (-> collections :result k)))
 
 (rf/reg-sub
   ::success?

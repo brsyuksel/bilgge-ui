@@ -1,8 +1,8 @@
-(ns bilgge-ui.collections.events
+(ns bilgge.collections.events
   (:require [re-frame.core :as rf]
             [day8.re-frame.http-fx]
             [day8.re-frame.tracing :refer-macros [fn-traced]]
-            [bilgge-ui.api :as api]))
+            [bilgge.api :as api]))
 
 (defn decrypt-collection-name
   [{:keys [name _iv] :as d} private-key aes-key]

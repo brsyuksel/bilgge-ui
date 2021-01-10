@@ -1,11 +1,11 @@
-(ns bilgge-ui.secrets.events-test
+(ns bilgge.secrets.events-test
   (:require [cljs.test :refer-macros [deftest testing is]]
             [re-frame.core :as rf]
             [day8.re-frame.test :as rf-test]
-            [bilgge-ui.events :as e]
-            [bilgge-ui.subs :as s]
-            [bilgge-ui.secrets.events :as s-e]
-            [bilgge-ui.secrets.subs :as s-s]))
+            [bilgge.events :as e]
+            [bilgge.subs :as s]
+            [bilgge.secrets.events :as s-e]
+            [bilgge.secrets.subs :as s-s]))
 
 (rf/reg-event-db
   ::initialize-test-db

@@ -1,11 +1,11 @@
-(ns bilgge-ui.login.events-test
+(ns bilgge.login.events-test
   (:require [cljs.test :refer-macros [deftest testing is]]
             [re-frame.core :as rf]
             [day8.re-frame.test :as rf-test]
-            [bilgge-ui.events :as e]
-            [bilgge-ui.subs :as s]
-            [bilgge-ui.login.events :as l-e]
-            [bilgge-ui.login.subs :as l-s]))
+            [bilgge.events :as e]
+            [bilgge.subs :as s]
+            [bilgge.login.events :as l-e]
+            [bilgge.login.subs :as l-s]))
 
 (deftest login-with-not-existing-user
   (rf-test/run-test-async

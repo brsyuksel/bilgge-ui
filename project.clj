@@ -1,4 +1,4 @@
-(defproject bilgge-ui "0.1.0-SNAPSHOT"
+(defproject bilgge "0.1.0-SNAPSHOT"
   :dependencies [[org.clojure/clojure "1.10.1"]
                  [org.clojure/clojurescript "1.10.773"
                   :exclusions [com.google.javascript/closure-compiler-unshaded
@@ -32,7 +32,7 @@
                          {:target :browser
                           :output-dir "resources/public/js/compiled"
                           :asset-path "/js/compiled"
-                          :modules {:app {:init-fn bilgge-ui.core/init
+                          :modules {:app {:init-fn bilgge.core/init
                                           :preloads [devtools.preload
                                                      day8.re-frame-10x.preload]}}
                           :dev {:compiler-options {:closure-defines {re-frame.trace.trace-enabled? true
@@ -54,7 +54,7 @@
                          {:target :karma
                           :ns-regexp "-test$"
                           :output-to "target/karma-test.js"
-                          :closure-defines {bilgge-ui.api/API-BASE-URL ~(System/getenv "API_BASE_URL")}}
+                          :closure-defines {bilgge.api/API-BASE-URL ~(System/getenv "API_BASE_URL")}}
 
                          :pact
                          {:target :node-script

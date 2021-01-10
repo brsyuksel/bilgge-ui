@@ -1,4 +1,4 @@
-(ns bilgge-ui.subs
+(ns bilgge.subs
   (:require
    [re-frame.core :as re-frame]))
 

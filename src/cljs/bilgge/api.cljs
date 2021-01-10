@@ -1,4 +1,4 @@
-(ns bilgge-ui.api
+(ns bilgge.api
   (:require [ajax.core :as ajax]))
 
 (goog-define API-BASE-URL "")

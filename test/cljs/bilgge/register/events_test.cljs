@@ -1,10 +1,10 @@
-(ns bilgge-ui.register.events-test
+(ns bilgge.register.events-test
   (:require [cljs.test :refer-macros [deftest testing is]]
             [re-frame.core :as rf]
             [day8.re-frame.test :as rf-test]
-            [bilgge-ui.events :as e]
-            [bilgge-ui.register.events :as r-e]
-            [bilgge-ui.register.subs :as r-s]))
+            [bilgge.events :as e]
+            [bilgge.register.events :as r-e]
+            [bilgge.register.subs :as r-s]))
 
 (deftest success-register-events
   (rf-test/run-test-async

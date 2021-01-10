@@ -1,11 +1,11 @@
-(ns bilgge-ui.collections.events-test
+(ns bilgge.collections.events-test
   (:require [cljs.test :refer-macros [deftest testing is]]
             [re-frame.core :as rf]
             [day8.re-frame.test :as rf-test]
-            [bilgge-ui.events :as e]
-            [bilgge-ui.subs :as s]
-            [bilgge-ui.collections.events :as c-e]
-            [bilgge-ui.collections.subs :as c-s]))
+            [bilgge.events :as e]
+            [bilgge.subs :as s]
+            [bilgge.collections.events :as c-e]
+            [bilgge.collections.subs :as c-s]))
 
 (rf/reg-event-db
   ::initialize-test-db

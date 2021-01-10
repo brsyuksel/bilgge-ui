@@ -1,7 +1,7 @@
-(ns bilgge-ui.views
+(ns bilgge.views
   (:require
    [re-frame.core :as re-frame]
-   [bilgge-ui.subs :as subs]
+   [bilgge.subs :as subs]
    ))
 
 (defn main-panel []

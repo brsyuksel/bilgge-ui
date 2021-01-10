@@ -1,34 +1,28 @@
-(ns bilgge-ui.secrets.subs
+(ns bilgge.login.subs
   (:require [re-frame.core :as rf]))
 
 (rf/reg-sub
-  ::secrets
+  ::login
   (fn [db _]
-    (:secrets db)))
+    (:login db)))
 
 (rf/reg-sub
   ::visibility
-  :<- [::secrets]
-  (fn [secrets [_ k]]
-    (-> secrets :visibility k)))
+  :<- [::login]
+  (fn [login [_ k]]
+    (-> login :visibility k)))
 
 (rf/reg-sub
   ::data
-  :<- [::secrets]
-  (fn [secrets _]
-    (-> secrets :data)))
-
-(rf/reg-sub
-  ::plain
-  :<- [::secrets]
-  (fn [secrets _]
-    (-> secrets :plain)))
+  :<- [::login]
+  (fn [login [_ k]]
+    (-> login :data k)))
 
 (rf/reg-sub
   ::result
-  :<- [::secrets]
-  (fn [secrets [_ k]]
-    (-> secrets :result k)))
+  :<- [::login]
+  (fn [login [_ k]]
+    (-> login :result k)))
 
 (rf/reg-sub
   ::success?

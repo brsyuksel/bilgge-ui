@@ -1,8 +1,8 @@
-(ns bilgge-ui.register.events
+(ns bilgge.register.events
   (:require [re-frame.core :as rf]
             [day8.re-frame.http-fx]
             [day8.re-frame.tracing :refer-macros [fn-traced]]
-            [bilgge-ui.api :as api]))
+            [bilgge.api :as api]))
 
 (rf/reg-event-fx
   ::register

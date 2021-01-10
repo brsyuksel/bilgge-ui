@@ -1,4 +1,4 @@
-(ns bilgge-ui.db)
+(ns bilgge.db)
 
 (def default-db
   {})
