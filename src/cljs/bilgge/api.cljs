@@ -11,14 +11,14 @@
   ([method uri headers params on-success-v on-failure-v]
    {:method method
     :uri uri
-    :headers (merge {"Content-Type" "application/json"} headers)
+    :headers headers
     :params params
-    :format (ajax/json-request-format)
-    :response-format (ajax/json-response-format {:keywords? true})
+    :format (if params (ajax/json-request-format) (ajax/text-request-format))
+    :response-format (ajax/detect-response-format)
     :on-success on-success-v
     :on-failure on-failure-v})
   ([method uri params on-success-v on-failure-v]
-   (->http-xhrio method uri nil params on-success-v on-failure-v)))
+   (->http-xhrio method uri {"Content-Type" "application/json"} params on-success-v on-failure-v)))
 
 ;; ---------------------------------------------------------------------------------------
 
@@ -26,6 +26,8 @@
   [params on-success-v on-failure-v]
   (let [uri (get-uri "/register")]
     (->http-xhrio :post uri params on-success-v on-failure-v)))
+
+;; ---------------------------------------------------------------------------------------
 
 (defn login-request
   [params on-success-v on-failure-v]
@@ -65,7 +67,7 @@
 
 (defn collection-delete
   [id headers on-success-v on-failure-v]
-  (collection* id :delete headers {:id id} on-success-v on-failure-v))
+  (collection* id :delete headers nil on-success-v on-failure-v))
 
 ;; ---------------------------------------------------------------------------------------
 
@@ -99,4 +101,4 @@
 
 (defn secret-delete
   [id headers on-success-v on-failure-v]
-  (secret* id :delete headers {:id id} on-success-v on-failure-v))
+  (secret* id :delete headers nil on-success-v on-failure-v))

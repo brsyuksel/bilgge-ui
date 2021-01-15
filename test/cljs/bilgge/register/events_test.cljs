@@ -11,7 +11,7 @@
     (rf/dispatch-sync [::e/initialize-db])
 
     (let [success? (rf/subscribe [::r-s/success?])
-          params {:username "ybaroj"
+          params {:username "created-by-pact"
                   :public_key "test-public-key"
                   :key "test-key"
                   :salt "test-salt"}]
@@ -26,17 +26,19 @@
 
     (let [success? (rf/subscribe [::r-s/success?])
           response (rf/subscribe [::r-s/response-body])
+          status (rf/subscribe [::r-s/response-status])
           expected-errors ["invalid username"
                            "public_key can not be empty"
                            "key can not be empty"
                            "salt can not be empty"]
           params {:username "yb"
-                  :public_key nil
+                  :public_key ""
                   :key ""
-                  :salt nil}]
+                  :salt ""}]
 
       (rf/dispatch [::r-e/register params])
       (rf-test/wait-for [::r-e/register-not-ok]
                         (is (false? @success?))
+                        (is (= 400 @status))
                         (is (= "validation" (:reason @response)))
                         (is (true? (every? #(-> #{%} (some (:messages @response)) some?) expected-errors)))))))

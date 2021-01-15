@@ -1,5 +1,6 @@
 (ns bilgge.secrets.events
-  (:require [re-frame.core :as rf]
+  (:require [clojure.walk :refer [keywordize-keys]]
+            [re-frame.core :as rf]
             [day8.re-frame.http-fx]
             [day8.re-frame.tracing :refer-macros [fn-traced]]
             [bilgge.api :as api]))
@@ -29,15 +30,17 @@
              (-> db
                  (assoc-in [:secrets :visibility :loading?] false)
                  (assoc-in [:secrets :result :success] false)
-                 (assoc-in [:secrets :result :response] response))))
+                 (assoc-in [:secrets :result :response :body] (keywordize-keys (:response response)))
+                 (assoc-in [:secrets :result :response :status] (:status response)))))
 
 (rf/reg-event-db
   ::get-secrets-ok
   (fn-traced [db [_ response]]
-             (let [priv-key (:private-key db)
+             (let [body (keywordize-keys response)
+                   priv-key (:private-key db)
                    aes-key (:key db)
                    decrypt #(decrypt-secret-info % priv-key aes-key)
-                   data (:data response)
+                   data (:data body)
                    data (map decrypt data)]
                (-> db
                    (assoc-in [:secrets :visibility :loading?] false)
@@ -59,7 +62,8 @@
              (-> db
                  (assoc-in [:secrets :visibility :loading?] false)
                  (assoc-in [:secrets :result :success] false)
-                 (assoc-in [:secrets :result :response] response))))
+                 (assoc-in [:secrets :result :response :body] (keywordize-keys (:response response)))
+                 (assoc-in [:secrets :result :response :status] (:status response)))))
 
 (rf/reg-event-fx
   ::create-secret-ok
@@ -81,14 +85,16 @@
              (-> db
                  (assoc-in [:secrets :visibility :loading?] false)
                  (assoc-in [:secrets :result :success] false)
-                 (assoc-in [:secrets :result :response] response))))
+                 (assoc-in [:secrets :result :response :body] (keywordize-keys (:response response)))
+                 (assoc-in [:secrets :result :response :status] (:status response)))))
 
 (rf/reg-event-db
   ::get-secret-detail-ok
   (fn-traced [db [_ response]]
-             (let [priv-key (:private-key db)
+             (let [body (keywordize-keys response)
+                   priv-key (:private-key db)
                    aes-key (:key db)
-                   data (decrypt-secret response priv-key aes-key)]
+                   data (decrypt-secret body priv-key aes-key)]
                (-> db
                    (assoc-in [:secrets :visibility :loading?] false)
                    (assoc-in [:secrets :result :success] true)
@@ -99,7 +105,7 @@
   (fn-traced [{:keys [db]} [_ collection-id id params]]
              (let [token (-> db :token)
                    headers {"Authorization" (str "Bearer " token)}
-                   list-params {:page 1 :collection_id collection-id}]
+                   list-params {:offset "0" :limit "10" :collection_id collection-id}]
                {:db db
                 :http-xhrio (api/secret-update id headers params [::edit-secret-ok list-params] [::edit-secret-not-ok])})))
 
@@ -109,7 +115,8 @@
              (-> db
                  (assoc-in [:secrets :visibility :loading?] false)
                  (assoc-in [:secrets :result :success] false)
-                 (assoc-in [:secrets :result :response] response))))
+                 (assoc-in [:secrets :result :response :body] (keywordize-keys (:response response)))
+                 (assoc-in [:secrets :result :response :status] (:status response)))))
 
 (rf/reg-event-fx
   ::edit-secret-ok
@@ -132,7 +139,8 @@
              (-> db
                  (assoc-in [:secrets :visibility :loading?] false)
                  (assoc-in [:secrets :result :success] false)
-                 (assoc-in [:secrets :result :response] response))))
+                 (assoc-in [:secrets :result :response :body] (keywordize-keys (:response response)))
+                 (assoc-in [:secrets :result :response :status] (:status response)))))
 
 (rf/reg-event-fx
   ::delete-secret-ok

@@ -40,4 +40,10 @@
   ::response-body
   :<- [::response]
   (fn [response _]
-    (:response response)))
+    (:body response)))
+
+(rf/reg-sub
+  ::response-status
+  :<- [::response]
+  (fn [response _]
+      (:status response)))

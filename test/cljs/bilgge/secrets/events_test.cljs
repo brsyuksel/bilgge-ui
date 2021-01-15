@@ -17,15 +17,15 @@
     (rf/dispatch-sync [::initialize-test-db {:token ""}])
 
     (let [success? (rf/subscribe [::s-s/success?])
-          response (rf/subscribe [::s-s/response-body])
+          status (rf/subscribe [::s-s/response-status])
           params {:collection_id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
-                  :page 1}]
+                  :offset "0"
+                  :limit "10"}]
 
       (rf/dispatch [::s-e/get-secrets params])
       (rf-test/wait-for [::s-e/get-secrets-not-ok]
                         (is (false? @success?))
-                        (is (= "authorization" (:reason @response)))
-                        (is (= ["permission denied"] (:messages @response)))))))
+                        (is (= 403 @status))))))
 
 (deftest secret-list
   (rf-test/run-test-async
@@ -36,7 +36,8 @@
     (let [success? (rf/subscribe [::s-s/success?])
           data (rf/subscribe [::s-s/data])
           params {:collection_id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
-                  :page 1}]
+                  :offset "0"
+                  :limit "10"}]
 
       (rf/dispatch [::s-e/get-secrets params])
       (rf-test/wait-for [::s-e/get-secrets-ok]
@@ -53,9 +54,13 @@
 
     (let [success? (rf/subscribe [::s-s/success?])
           response (rf/subscribe [::s-s/response-body])
-          params {:collection_id "" :type "" :title "" :content "" :_iv "" :hashes []}
-          expected-messages ["collection_id can not be empty"
-                             "type can not be empty"
+          params {:collection_id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+                  :type ""
+                  :title ""
+                  :content ""
+                  :_iv ""
+                  :hashes []}
+          expected-messages ["type can not be empty"
                              "title can not be empty"
                              "content can not be empty"
                              "_iv can not be empty"
@@ -148,7 +153,8 @@
           response (rf/subscribe [::s-s/response-body])
           collection-id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
           id "2b08c749-a996-44b6-9d12-9398b3789861"
-          params {:type ""
+          params {:collection_id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+                  :type ""
                   :title ""
                   :content ""
                   :_iv ""
@@ -174,7 +180,8 @@
     (let [success? (rf/subscribe [::s-s/success?])
           collection-id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
           id "2b08c749-a996-44b6-9d12-9398b3789861"
-          params {:type "new-enc-type"
+          params {:collection_id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+                  :type "new-enc-type"
                   :title "new-enc-title"
                   :content "new-enc-content"
                   :_iv "new-enc-iv"
@@ -192,12 +199,14 @@
 
     (let [success? (rf/subscribe [::s-s/success?])
           response (rf/subscribe [::s-s/response-body])
+          status (rf/subscribe [::s-s/response-status])
           collection-id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
           id "9a50af13-b8f7-44cf-ad07-5a2fefc1db22"]
 
       (rf/dispatch [::s-e/delete-secret collection-id id])
       (rf-test/wait-for [::s-e/delete-secret-not-ok]
                         (is (false? @success?))
+                        (is (= 404 @status))
                         (is (= "not_found" (:reason @response)))
                         (is (= ["secret not found"] (:messages @response)))))))
 

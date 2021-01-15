@@ -1,5 +1,6 @@
 (ns bilgge.collections.events
-  (:require [re-frame.core :as rf]
+  (:require [clojure.walk :refer [keywordize-keys]]
+            [re-frame.core :as rf]
             [day8.re-frame.http-fx]
             [day8.re-frame.tracing :refer-macros [fn-traced]]
             [bilgge.api :as api]))
@@ -22,15 +23,17 @@
              (-> db
                  (assoc-in [:collections :visibility :loading?] false)
                  (assoc-in [:collections :result :success] false)
-                 (assoc-in [:collections :result :response] response))))
+                 (assoc-in [:collections :result :response :body] (keywordize-keys (:response response)))
+                 (assoc-in [:collections :result :response :status] (:status response)))))
 
 (rf/reg-event-db
   ::get-collections-ok
   (fn-traced [db [_ response]]
-             (let [priv-key (:private-key db)
+             (let [body (keywordize-keys response)
+                   priv-key (:private-key db)
                    aes-key (:key db)
                    decrypt #(decrypt-collection-name % priv-key aes-key)
-                   data (:data response)
+                   data (:data body)
                    data (map decrypt data)]
                (-> db
                    (assoc-in [:collections :visibility :loading?] false)
@@ -51,7 +54,8 @@
              (-> db
                  (assoc-in [:collections :visibility :loading?] false)
                  (assoc-in [:collections :result :success] false)
-                 (assoc-in [:collections :result :response] response))))
+                 (assoc-in [:collections :result :response :body] (keywordize-keys (:response response)))
+                 (assoc-in [:collections :result :response :status] (:status response)))))
 
 (rf/reg-event-fx
   ::create-collection-ok
@@ -73,7 +77,8 @@
              (-> db
                  (assoc-in [:collections :visibility :loading?] false)
                  (assoc-in [:collections :result :success] false)
-                 (assoc-in [:collections :result :response] response))))
+                 (assoc-in [:collections :result :response :body] (keywordize-keys (:response response)))
+                 (assoc-in [:collections :result :response :status] (:status response)))))
 
 (rf/reg-event-fx
   ::edit-collection-ok
@@ -95,7 +100,8 @@
              (-> db
                  (assoc-in [:collections :visibility :loading?] false)
                  (assoc-in [:collections :result :success] false)
-                 (assoc-in [:collections :result :response] response))))
+                 (assoc-in [:collections :result :response :body] (keywordize-keys (:response response)))
+                 (assoc-in [:collections :result :response :status] (:status response)))))
 
 (rf/reg-event-fx
   ::delete-collection-ok

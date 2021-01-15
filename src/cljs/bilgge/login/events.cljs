@@ -1,5 +1,6 @@
 (ns bilgge.login.events
-  (:require [re-frame.core :as rf]
+  (:require [clojure.walk :refer [keywordize-keys]]
+            [re-frame.core :as rf]
             [day8.re-frame.http-fx]
             [day8.re-frame.tracing :refer-macros [fn-traced]]
             [bilgge.api :as api]))
@@ -24,7 +25,8 @@
              (-> db
                  (assoc-in [:login :visibility :loading?] false)
                  (assoc-in [:login :result :success] false)
-                 (assoc-in [:login :result :response] response))))
+                 (assoc-in [:login :result :response :body] (keywordize-keys (:response response)))
+                 (assoc-in [:login :result :response :status] (:status response)))))
 
 (rf/reg-event-fx
   ::login-request-ok
@@ -51,15 +53,17 @@
              (-> db
                  (assoc-in [:login :visibility :loading?] false)
                  (assoc-in [:login :result :success] false)
-                 (assoc-in [:login :result :response] response))))
+                 (assoc-in [:login :result :response :body] (keywordize-keys (:response response)))
+                 (assoc-in [:login :result :response :status] (:status response)))))
 
 (rf/reg-event-db
   ::login-authenticate-ok
   (fn-traced [db [_ response]]
-             (-> db
-                 (assoc-in [:login :visibility :loading?] false)
-                 (assoc-in [:login :result :success] true)
-                 (assoc :token (-> response :token))
-                 (assoc :public-key (-> response :public_key))
-                 (assoc :key (-> response :key))
-                 (assoc :salt (-> response :salt)))))
+             (let [body (keywordize-keys response)]
+                  (-> db
+                      (assoc-in [:login :visibility :loading?] false)
+                      (assoc-in [:login :result :success] true)
+                      (assoc :token (-> body :token))
+                      (assoc :public-key (-> body :public_key))
+                      (assoc :key (-> body :key))
+                      (assoc :salt (-> body :salt))))))

@@ -17,13 +17,12 @@
     (rf/dispatch-sync [::initialize-test-db {:token ""}])
 
     (let [success? (rf/subscribe [::c-s/success?])
-          response (rf/subscribe [::c-s/response-body])]
+          status (rf/subscribe [::c-s/response-status])]
 
       (rf/dispatch [::c-e/get-collections])
       (rf-test/wait-for [::c-e/get-collections-not-ok]
                         (is (false? @success?))
-                        (is (= "authorization" (:reason @response)))
-                        (is (= ["permission denied"] (:messages @response)))))))
+                        (is (= 403 @status))))))
 
 (deftest collection-list
   (rf-test/run-test-async
@@ -83,12 +82,14 @@
 
     (let [success? (rf/subscribe [::c-s/success?])
           response (rf/subscribe [::c-s/response-body])
+          status (rf/subscribe [::c-s/response-status])
           id "e413c43d-401e-4731-a80c-c87b050922a7"
           params {:name "encrypted-name" :_iv "encrypted-iv"}]
 
       (rf/dispatch [::c-e/edit-collection id params])
       (rf-test/wait-for [::c-e/edit-collection-not-ok]
                         (is (false? @success?))
+                        (is (= 404 @status))
                         (is (= "not_found" (:reason @response)))
                         (is (= ["collection not found"] (:messages @response)))))))
 
@@ -100,6 +101,7 @@
                                              :key "k"}])
 
     (let [success? (rf/subscribe [::c-s/success?])
+          status (rf/subscribe [::c-s/response-status])
           response (rf/subscribe [::c-s/response-body])
           id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
           params {:name "" :_iv ""}
@@ -109,6 +111,7 @@
       (rf/dispatch [::c-e/edit-collection id params])
       (rf-test/wait-for [::c-e/edit-collection-not-ok]
                         (is (false? @success?))
+                        (is (= 400 @status))
                         (is (= "validation" (:reason @response)))
                         (is (true? (every? #(-> #{%} (some (:messages @response)) some?) expected-messages)))))))
 
@@ -134,11 +137,13 @@
 
     (let [success? (rf/subscribe [::c-s/success?])
           response (rf/subscribe [::c-s/response-body])
+          status (rf/subscribe [::c-s/response-status])
           id "e413c43d-401e-4731-a80c-c87b050922a7"]
 
       (rf/dispatch [::c-e/delete-collection id])
       (rf-test/wait-for [::c-e/delete-collection-not-ok]
                         (is (false? @success?))
+                        (is (= 404 @status))
                         (is (= "not_found" (:reason @response)))
                         (is (= ["collection not found"] (:messages @response)))))))
 

@@ -13,11 +13,13 @@
 
     (let [success? (rf/subscribe [::l-s/success?])
           response (rf/subscribe [::l-s/response-body])
+          status (rf/subscribe [::l-s/response-status])
           params {:username "not-existing"}]
 
       (rf/dispatch [::l-e/login-request params])
       (rf-test/wait-for [::l-e/login-request-not-ok]
                         (is (false? @success?))
+                        (is (= 404 @status))
                         (is (= "not_found" (:reason @response)))
                         (is (= ["user not found"] (:messages @response)))))))
 
@@ -26,7 +28,7 @@
     (rf/dispatch-sync [::e/initialize-db])
 
     (let [plain (rf/subscribe [::l-s/data :plain])
-          params {:username "ybaroj"}]
+          params {:username "pact-verifier-user"}]
 
       (rf/dispatch [::l-e/login-request params])
       (rf-test/wait-for [::l-e/login-request-ok]
@@ -63,8 +65,8 @@
 
     (let [success? (rf/subscribe [::l-s/success?])
           token (rf/subscribe [::s/token])
-          params {:username "ybaroj"
-                  :plain "base64-encoded-valid-plain"}]
+          params {:username "pact-verifier-user"
+                  :plain "0123456789abcdef0123456789abcdef"}]
 
       (rf/dispatch [::l-e/login-authenticate params])
       (rf-test/wait-for [::l-e/login-authenticate-ok]

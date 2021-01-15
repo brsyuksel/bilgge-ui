@@ -1,5 +1,6 @@
 (ns bilgge.register.events
-  (:require [re-frame.core :as rf]
+  (:require [clojure.walk :refer [keywordize-keys]]
+            [re-frame.core :as rf]
             [day8.re-frame.http-fx]
             [day8.re-frame.tracing :refer-macros [fn-traced]]
             [bilgge.api :as api]))
@@ -23,4 +24,5 @@
              (-> db
                  (assoc-in [:register :visibility :loading?] false)
                  (assoc-in [:register :result :success] false)
-                 (assoc-in [:register :result :response] response))))
+                 (assoc-in [:register :result :response :body] (keywordize-keys (:response response)))
+                 (assoc-in [:register :result :response :status] (:status response)))))
