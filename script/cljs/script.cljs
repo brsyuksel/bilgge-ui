@@ -24,8 +24,8 @@
                                                       :matcher match})))
 
 ;; ---------------------------------------------------------------------------------------
-
-(def valid-plain "ZLer5Jkqmn3KId7WckRGVSBqCqD0raxb")
+(def valid-user "pact-verifier-user")
+(def valid-plain "0123456789abcdef0123456789abcdef")
 (def jwt-ci-secret "jwt-ci-secret")
 (def valid-token (.sign jwt (clj->js {:username "ybaroj"}) jwt-ci-secret (clj->js {:expiresIn "6h"})))
 (def bearer (str "Bearer " valid-token))
@@ -37,12 +37,11 @@
             :withRequest {:method "POST"
                           :path "/register"
                           :headers {"Content-Type" "application/json"}
-                          :body {:username (like "test-user")
+                          :body {:username (like "created-by-pact")
                                  :public_key "test-public-key"
                                  :key "test-key"
                                  :salt "test-salt"}}
-            :willRespondWith {:status 201
-                              :body {:username (like "test-user")}}}))
+            :willRespondWith {:status 201}}))
 
 (def register-validation-error
   (clj->js {:uponReceiving "invalid post /register"
@@ -50,9 +49,9 @@
                           :path "/register"
                           :headers {"Content-Type" "application/json"}
                           :body {:username "yb"
-                                 :public_key nil
+                                 :public_key ""
                                  :key ""
-                                 :salt nil}}
+                                 :salt ""}}
             :willRespondWith {:status 400
                               :headers {"Content-Type" "application/json"}
                               :body {:reason "validation"
@@ -79,7 +78,7 @@
             :withRequest {:method "POST"
                           :path "/login/request"
                           :headers {"Content-Type" "application/json"}
-                          :body {:username "ybaroj"}}
+                          :body {:username valid-user}}
             :willRespondWith {:status 200
                               :headers {"Content-Type" "application/json"}
                               :body {:cipher (like "test-cipher")}}}))
@@ -89,11 +88,11 @@
             :withRequest {:method "POST"
                           :path "/login/authenticate"
                           :headers {"Content-Type" "application/json"}
-                          :body {:username "ybaroj"
-                                 :plain "base64-encoded-invalid-plain-text"}}
-            :willRespondWith {:status 401
+                          :body {:username valid-user
+                                 :plain "invalid-plain-text"}}
+            :willRespondWith {:status 400
                               :headers {"Content-Type" "application/json"}
-                              :body {:reason "decryption"
+                              :body {:reason "validation"
                                      :messages ["plain does not match"]}}}))
 
 (def login-authenticate-validation-error
@@ -101,7 +100,7 @@
             :withRequest {:method "POST"
                           :path "/login/authenticate"
                           :headers {"Content-Type" "application/json"}
-                          :body {:username "yb"
+                          :body {:username valid-user
                                  :plain ""}}
             :willRespondWith {:status 400
                               :headers {"Content-Type" "application/json"}
@@ -113,7 +112,7 @@
             :withRequest {:method "POST"
                           :path "/login/authenticate"
                           :headers {"Content-Type" "application/json"}
-                          :body {:username "ybaroj"
+                          :body {:username valid-user
                                  :plain (like valid-plain)}}
             :willRespondWith {:status 200
                               :headers {"Content-Type" "application/json"}
@@ -128,19 +127,14 @@
   (clj->js {:uponReceiving "unauthorized get /collections"
             :withRequest {:method "GET"
                           :path "/collections"
-                          :headers {"Content-Type" "application/json"
-                                    "Authorization" "Bearer"}}
-            :willRespondWith {:status 401
-                              :headers {"Content-Type" "application/json"}
-                              :body {:reason "authorization"
-                                     :messages ["permission denied"]}}}))
+                          :headers {"Authorization" "Bearer"}}
+            :willRespondWith {:status 403}}))
 
 (def collections-list
   (clj->js {:uponReceiving "get /collections"
             :withRequest {:method "GET"
                           :path "/collections"
-                          :headers {"Content-Type" "application/json"
-                                    "Authorization" valid-bearer}}
+                          :headers {"Authorization" valid-bearer}}
             :willRespondWith {:status 200
                               :headers {"Content-Type" "application/json"}
                               :body {:data (each-like {:id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
@@ -167,11 +161,7 @@
                           :headers {"Content-Type" "application/json"
                                     "Authorization" valid-bearer}
                           :body {:name "encrypted-name" :_iv "encrypted-iv"}}
-            :willRespondWith {:status 201
-                              :headers {"Content-Type" "application/json"}
-                              :body {:id (like "2b08c749-a996-44b6-9d12-9398b3789861")
-                                     :name (like "new-enc-name")
-                                     :_iv (like "new-enc-iv")}}}))
+            :willRespondWith {:status 201}}))
 
 (def collection-edit-not-found-error
   (clj->js {:uponReceiving "not-found put /collections/e413c43d-401e-4731-a80c-c87b050922a7"
@@ -205,19 +195,13 @@
                           :headers {"Content-Type" "application/json"
                                     "Authorization" valid-bearer}
                           :body {:name "enc-name" :_iv "enc-iv"}}
-            :willRespondWith {:status 200
-                              :headers {"Content-Type" "application/json"}
-                              :body {:id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
-                                     :name (like "enc-name")
-                                     :_iv (like "enc-iv")}}}))
+            :willRespondWith {:status 204}}))
 
 (def collection-delete-not-found-error
   (clj->js {:uponReceiving "not-found delete /collections/e413c43d-401e-4731-a80c-c87b050922a7"
             :withRequest {:method "DELETE"
                           :path "/collections/e413c43d-401e-4731-a80c-c87b050922a7"
-                          :headers {"Content-Type" "application/json"
-                                    "Authorization" valid-bearer}
-                          :body {:id "e413c43d-401e-4731-a80c-c87b050922a7"}}
+                          :headers {"Authorization" valid-bearer}}
             :willRespondWith {:status 404
                               :headers {"Content-Type" "application/json"}
                               :body {:reason "not_found"
@@ -227,12 +211,8 @@
   (clj->js {:uponReceiving "delete /collections/5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
             :withRequest {:method "DELETE"
                           :path "/collections/5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
-                          :headers {"Content-Type" "application/json"
-                                    "Authorization" valid-bearer}
-                          :body {:id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"}}
-            :willRespondWith {:status 200
-                              :headers {"Content-Type" "application/json"}
-                              :body {:id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"}}}))
+                          :headers {"Authorization" valid-bearer}}
+            :willRespondWith {:status 204}}))
 
 ;; ---------------------------------------------------------------------------------------
 
@@ -240,32 +220,29 @@
   (clj->js {:uponReceiving "unauthorized get /secrets"
             :withRequest {:method "GET"
                           :path "/secrets"
-                          :headers {"Content-Type" "application/json"
-                                    "Authorization" "Bearer"}
+                          :headers {"Authorization" "Bearer"}
                           :query {:collection_id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
-                                  :page "1"}}
-            :willRespondWith {:status 401
-                              :headers {"Content-Type" "application/json"}
-                              :body {:reason "authorization"
-                                     :messages ["permission denied"]}}}))
+                                  :offset "0"
+                                  :limit "10"}}
+            :willRespondWith {:status 403}}))
 
 (def secrets-list
   (clj->js {:uponReceiving "get /secrets"
             :withRequest {:method "GET"
                           :path "/secrets"
-                          :headers {"Content-Type" "application/json"
-                                    "Authorization" valid-bearer}
+                          :headers {"Authorization" valid-bearer}
                           :query {:collection_id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
-                                  :page "1"}}
+                                  :offset "0"
+                                  :limit "10"}}
             :willRespondWith {:status 200
                               :headers {"Content-Type" "application/json"}
-                              :body {:pagination {:page 1
-                                                  :count 1}
+                              :body {:pagination {:total (like 1)
+                                                  :offset 0
+                                                  :limit 10}
                                      :data (each-like {:id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
                                                        :type "encrypted-type-1"
                                                        :title "encrypted-title-1"
-                                                       :_iv "encrypted-iv-1"
-                                                       :modified_at 1610230065})}}}))
+                                                       :_iv "encrypted-iv-1"})}}}))
 
 (def secret-create-validation-error
   (clj->js {:uponReceiving "bad-request post /secrets"
@@ -273,12 +250,11 @@
                           :path "/secrets"
                           :headers {"Content-Type" "application/json"
                                     "Authorization" valid-bearer}
-                          :body {:collection_id "" :type "" :title "" :content "" :_iv "" :hashes []}}
+                          :body {:collection_id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8" :type "" :title "" :content "" :_iv "" :hashes []}}
             :willRespondWith {:status 400
                               :headers {"Content-Type" "application/json"}
                               :body {:reason "validation"
-                                     :messages ["collection_id can not be empty"
-                                                "type can not be empty"
+                                     :messages ["type can not be empty"
                                                 "title can not be empty"
                                                 "content can not be empty"
                                                 "_iv can not be empty"
@@ -296,19 +272,13 @@
                                  :content "new-enc-content"
                                  :_iv "new-enc-iv"
                                  :hashes ["title-hash-1"]}}
-            :willRespondWith {:status 201
-                              :headers {"Content-Type" "application/json"}
-                              :body {:id (like "2b08c749-a996-44b6-9d12-9398b3789861")
-                                     :type (like "new-enc-type")
-                                     :title (like "new-enc-title")
-                                     :_iv (like "new-enc-iv")}}}))
+            :willRespondWith {:status 201}}))
 
 (def secret-detail-not-found
   (clj->js {:uponReceiving "not-found get /secrets/9a50af13-b8f7-44cf-ad07-5a2fefc1db22"
             :withRequest {:method "GET"
                           :path "/secrets/9a50af13-b8f7-44cf-ad07-5a2fefc1db22"
-                          :headers {"Content-Type" "application/json"
-                                    "Authorization" valid-bearer}}
+                          :headers {"Authorization" valid-bearer}}
             :willRespondWith {:status 404
                               :headers {"Content-Type" "application/json"}
                               :body {:reason "not_found"
@@ -318,8 +288,7 @@
   (clj->js {:uponReceiving "get /secrets/2b08c749-a996-44b6-9d12-9398b3789861"
             :withRequest {:method "GET"
                           :path "/secrets/2b08c749-a996-44b6-9d12-9398b3789861"
-                          :headers {"Content-Type" "application/json"
-                                    "Authorization" valid-bearer}}
+                          :headers {"Authorization" valid-bearer}}
             :willRespondWith {:status 200
                               :headers {"Content-Type" "application/json"}
                               :body {:id (like "2b08c749-a996-44b6-9d12-9398b3789861")
@@ -350,7 +319,8 @@
                           :path "/secrets/2b08c749-a996-44b6-9d12-9398b3789861"
                           :headers {"Content-Type" "application/json"
                                     "Authorization" valid-bearer}
-                          :body {:type ""
+                          :body {:collection_id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+                                 :type ""
                                  :title ""
                                  :content ""
                                  :_iv ""
@@ -370,25 +340,19 @@
                           :path "/secrets/2b08c749-a996-44b6-9d12-9398b3789861"
                           :headers {"Content-Type" "application/json"
                                     "Authorization" valid-bearer}
-                          :body {:type "new-enc-type"
+                          :body {:collection_id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+                                 :type "new-enc-type"
                                  :title "new-enc-title"
                                  :content "new-enc-content"
                                  :_iv "new-enc-iv"
                                  :hashes ["title-hash-1"]}}
-            :willRespondWith {:status 200
-                              :headers {"Content-Type" "application/json"}
-                              :body {:id (like "2b08c749-a996-44b6-9d12-9398b3789861")
-                                     :type (like "new-enc-type")
-                                     :title (like "new-enc-title")
-                                     :_iv (like "new-enc-iv")}}}))
+            :willRespondWith {:status 204}}))
 
 (def secret-delete-not-found-error
   (clj->js {:uponReceiving "not-found delete /secrets/9a50af13-b8f7-44cf-ad07-5a2fefc1db22"
             :withRequest {:method "DELETE"
                           :path "/secrets/9a50af13-b8f7-44cf-ad07-5a2fefc1db22"
-                          :headers {"Content-Type" "application/json"
-                                    "Authorization" valid-bearer}
-                          :body {:id "9a50af13-b8f7-44cf-ad07-5a2fefc1db22"}}
+                          :headers {"Authorization" valid-bearer}}
             :willRespondWith {:status 404
                               :headers {"Content-Type" "application/json"}
                               :body {:reason "not_found"
@@ -398,12 +362,8 @@
   (clj->js {:uponReceiving "delete /secrets/2b08c749-a996-44b6-9d12-9398b3789861"
             :withRequest {:method "DELETE"
                           :path "/secrets/2b08c749-a996-44b6-9d12-9398b3789861"
-                          :headers {"Content-Type" "application/json"
-                                    "Authorization" valid-bearer}
-                          :body {:id "2b08c749-a996-44b6-9d12-9398b3789861"}}
-            :willRespondWith {:status 200
-                              :headers {"Content-Type" "application/json"}
-                              :body {:id (like "2b08c749-a996-44b6-9d12-9398b3789861")}}}))
+                          :headers {"Authorization" valid-bearer}}
+            :willRespondWith {:status 204}}))
 
 ;; ---------------------------------------------------------------------------------------
 (defn pact-server
