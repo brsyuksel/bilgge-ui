@@ -79,7 +79,7 @@
             :withRequest {:method "POST"
                           :path "/login/request"
                           :headers {"Content-Type" "application/json"}
-                          :body {:username valid-user}}
+                          :body {:username "ybaroj"}}
             :willRespondWith {:status 200
                               :headers {"Content-Type" "application/json"}
                               :body {:cipher (like "test-cipher")}}}))
@@ -209,9 +209,9 @@
                                      :messages ["collection not found"]}}}))
 
 (def collection-delete-success
-  (clj->js {:uponReceiving "delete /collections/5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+  (clj->js {:uponReceiving "delete /collections/25bf8f6c-c228-4e6a-9a06-ec26f727a82f"
             :withRequest {:method "DELETE"
-                          :path "/collections/5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+                          :path "/collections/25bf8f6c-c228-4e6a-9a06-ec26f727a82f"
                           :headers {"Authorization" valid-bearer}}
             :willRespondWith {:status 204}}))
 
@@ -240,7 +240,7 @@
                               :body {:pagination {:total (like 1)
                                                   :offset 0
                                                   :limit 10}
-                                     :data (each-like {:id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+                                     :data (each-like {:id "528bd2c2-9fc2-471b-866d-e19152a041e3"
                                                        :type "encrypted-type-1"
                                                        :title "encrypted-title-1"
                                                        :_iv "encrypted-iv-1"})}}}))
@@ -305,10 +305,12 @@
                           :path "/secrets/9a50af13-b8f7-44cf-ad07-5a2fefc1db22"
                           :headers {"Content-Type" "application/json"
                                     "Authorization" valid-bearer}
-                          :body {:type "new-enc-type"
+                          :body {:collection_id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+                                 :type "new-enc-type"
                                  :title "new-enc-title"
                                  :content "new-enc-content"
-                                 :_iv "new-enc-iv"}}
+                                 :_iv "new-enc-iv"
+                                 :hashes ["title-hash-1"]}}
             :willRespondWith {:status 404
                               :headers {"Content-Type" "application/json"}
                               :body {:reason "not_found"
@@ -326,7 +328,7 @@
                                  :content ""
                                  :_iv ""
                                  :hashes []}}
-            :willRespondWith {:status 404
+            :willRespondWith {:status 400
                               :headers {"Content-Type" "application/json"}
                               :body {:reason "validation"
                                      :messages ["type can not be empty"
