@@ -28,7 +28,7 @@
     (rf/dispatch-sync [::e/initialize-db])
 
     (let [plain (rf/subscribe [::l-s/data :plain])
-          params {:username "pact-verifier-user"}]
+          params {:username "ybaroj"}]
 
       (rf/dispatch [::l-e/login-request params])
       (rf-test/wait-for [::l-e/login-request-ok]

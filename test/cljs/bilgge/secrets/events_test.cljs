@@ -132,10 +132,12 @@
           response (rf/subscribe [::s-s/response-body])
           collection-id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
           id "9a50af13-b8f7-44cf-ad07-5a2fefc1db22"
-          params {:type "new-enc-type"
+          params {:collection_id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
+                  :type "new-enc-type"
                   :title "new-enc-title"
                   :content "new-enc-content"
-                  :_iv "new-enc-iv"}]
+                  :_iv "new-enc-iv"
+                  :hashes ["title-hash-1"]}]
 
       (rf/dispatch [::s-e/edit-secret collection-id id params])
       (rf-test/wait-for [::s-e/edit-secret-not-ok]

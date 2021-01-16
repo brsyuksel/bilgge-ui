@@ -154,7 +154,7 @@
                                              :key "k"}])
 
     (let [success? (rf/subscribe [::c-s/success?])
-          id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"]
+          id "25bf8f6c-c228-4e6a-9a06-ec26f727a82f"]
 
       (rf/dispatch [::c-e/delete-collection id])
       (rf-test/wait-for [::c-e/delete-collection-ok]
