@@ -2,12 +2,26 @@
   (:require [cljs.test :refer-macros [deftest testing is]]
             [re-frame.core :as rf]
             [day8.re-frame.test :as rf-test]
+            [reitit.frontend :as rfr]
+            [reitit.frontend.easy :as rfe]
             [bilgge.events :as e]
             [bilgge.register.events :as r-e]
             [bilgge.register.subs :as r-s]))
 
+(def routes
+     [["/" {:name :app-page}]
+      ["/register" {:name :register-page}]
+      ["/login" {:name :login-page}]])
+
+(defn start-router
+      (rfe/start!
+        (rfr/router routes)
+        (fn [m] (rf/dispatch [::e/set-route-name (-> m :data :name)]))
+        {:use-fragment false}))
+
 (deftest success-register-events
   (rf-test/run-test-async
+    (start-router)
     (rf/dispatch-sync [::e/initialize-db])
 
     (let [success? (rf/subscribe [::r-s/success?])
@@ -22,6 +36,7 @@
 
 (deftest fail-register-events
   (rf-test/run-test-async
+    (start-router)
     (rf/dispatch-sync [::e/initialize-db])
 
     (let [success? (rf/subscribe [::r-s/success?])
