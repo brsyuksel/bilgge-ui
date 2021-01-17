@@ -6,3 +6,8 @@
  ::token
  (fn [db]
    (:token db)))
+
+(re-frame/reg-sub
+  ::route-name
+  (fn [db]
+      (:route-name db)))
