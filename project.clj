@@ -9,7 +9,9 @@
                  [re-frame "1.1.2"]
                  [day8.re-frame/tracing "0.6.0"]
                  [day8.re-frame/http-fx "0.2.2"]
-                 [cljs-ajax "0.8.0"]]
+                 [cljs-ajax "0.8.0"]
+                 [metosin/reitit-core "0.5.11"]
+                 [metosin/reitit-frontend "0.5.11"]]
 
   :plugins [[lein-shadow "0.3.1"]
             [lein-shell "0.5.0"]
@@ -36,8 +38,10 @@
                                           :preloads [devtools.preload
                                                      day8.re-frame-10x.preload]}}
                           :dev {:compiler-options {:closure-defines {re-frame.trace.trace-enabled? true
-                                                                     day8.re-frame.tracing.trace-enabled? true}}}
-                          :release {:build-options {:ns-aliases {day8.re-frame.tracing day8.re-frame.tracing-stubs}}}
+                                                                     day8.re-frame.tracing.trace-enabled? true
+                                                                     bilgge.api/API-BASE-URL ~(System/getenv "API_BASE_URL")}}}
+                          :release {:build-options {:ns-aliases {day8.re-frame.tracing day8.re-frame.tracing-stubs}}
+                                    :compiler-options {:closure-defines {bilgge.api/API-BASE-URL ~(System/getenv "API_BASE_URL")}}}
 
                           :devtools {:http-root "resources/public"
                                      :http-port 8280}}
