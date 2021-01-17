@@ -3,10 +3,13 @@
             [re-frame.core :as rf]
             [day8.re-frame.http-fx]
             [day8.re-frame.tracing :refer-macros [fn-traced]]
-            [bilgge.api :as api]))
+            [bilgge.api :as api]
+            [bilgge.utils :as utils]
+            [bilgge.events :as e]))
 
 (defn decrypt-login-cipher
-  [_] "")                                                   ;TODO: replace with implementation
+  [priv-key cipher-text]
+      (utils/decrypt-rsa-string-key priv-key cipher-text))
 
 (rf/reg-event-db
   ::set-data
@@ -17,7 +20,7 @@
   ::login-request
   (fn-traced [{:keys [db]} [_ params]]
              {:db (assoc-in db [:login :visibility :loading?] true)
-              :http-xhrio (api/login-request params [::login-request-ok] [::login-request-not-ok])}))
+              :http-xhrio (api/login-request params [::login-request-ok params] [::login-request-not-ok])}))
 
 (rf/reg-event-db
   ::login-request-not-ok
@@ -30,16 +33,19 @@
 
 (rf/reg-event-fx
   ::login-request-ok
-  (fn-traced [{:keys [db]} [_ response]]
-             (let [cipher (-> response :cipher)
-                   plain (decrypt-login-cipher cipher)]
+  (fn-traced [{:keys [db]} [_ params response]]
+             (let [body (keywordize-keys response)
+                   priv-key (:private-key db)
+                   cipher (-> body :cipher)
+                   plain (decrypt-login-cipher priv-key cipher)
+                   params (merge params {:plain plain})]
                (if-not plain
                  {:db (-> db
                           (assoc-in [:login :visibility :loading?] false)
                           (assoc-in [:login :result :success] false)
                           (assoc-in [:login :result :error :messages] ["decryption failed"]))}
                  {:db (assoc-in db [:login :data :plain] plain)
-                  :dispatch [::login-authenticate]}))))
+                  :dispatch [::login-authenticate params]}))))
 
 (rf/reg-event-fx
   ::login-authenticate
@@ -56,14 +62,15 @@
                  (assoc-in [:login :result :response :body] (keywordize-keys (:response response)))
                  (assoc-in [:login :result :response :status] (:status response)))))
 
-(rf/reg-event-db
+(rf/reg-event-fx
   ::login-authenticate-ok
-  (fn-traced [db [_ response]]
+  (fn-traced [{:keys [db]} [_ response]]
              (let [body (keywordize-keys response)]
-                  (-> db
-                      (assoc-in [:login :visibility :loading?] false)
-                      (assoc-in [:login :result :success] true)
-                      (assoc :token (-> body :token))
-                      (assoc :public-key (-> body :public_key))
-                      (assoc :key (-> body :key))
-                      (assoc :salt (-> body :salt))))))
+                  {:db (-> db
+                           (assoc-in [:login :visibility :loading?] false)
+                           (assoc-in [:login :result :success] true)
+                           (assoc :token (-> body :token))
+                           (assoc :public-key (-> body :public_key))
+                           (assoc :key (-> body :key))
+                           (assoc :salt (-> body :salt)))
+                   :dispatch [::e/push-state :app-page]})))
