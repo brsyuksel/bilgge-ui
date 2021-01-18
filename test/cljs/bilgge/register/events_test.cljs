@@ -14,6 +14,7 @@
       ["/login" {:name :login-page}]])
 
 (defn start-router
+      []
       (rfe/start!
         (rfr/router routes)
         (fn [m] (rf/dispatch [::e/set-route-name (-> m :data :name)]))
