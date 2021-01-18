@@ -26,3 +26,8 @@
                  (assoc-in [:register :result :success] false)
                  (assoc-in [:register :result :response :body] (keywordize-keys (:response response)))
                  (assoc-in [:register :result :response :status] (:status response)))))
+
+(rf/reg-event-db
+  ::set-error-message
+  (fn-traced [db [_ message]]
+             (assoc-in db [:register :result :error :messages] [message])))

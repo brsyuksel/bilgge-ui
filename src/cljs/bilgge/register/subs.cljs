@@ -47,3 +47,15 @@
   :<- [::response]
   (fn [response _]
       (:status response)))
+
+(rf/reg-sub
+  ::body-messages
+  :<- [::response-body]
+  (fn [body _]
+      (:messages body)))
+
+(rf/reg-sub
+  ::error-messages
+  :<- [::result :error]
+  (fn [err _]
+      (:messages err)))
