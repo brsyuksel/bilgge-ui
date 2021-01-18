@@ -1,7 +1,8 @@
 (ns bilgge.views
   (:require [re-frame.core :as re-frame]
             [bilgge.subs :as subs]
-            [bilgge.login.views :as login.v]))
+            [bilgge.login.views :as login.v]
+            [bilgge.register.views :as register.v]))
 
 (defn header-add-new-item-menu
       [display?]
@@ -18,16 +19,16 @@
            [:div.dropdown-item
             [:span.icon
              [:i.fas.fa-sticky-note]]
-            [:span.is-size-5 "note"]]
+            [:span.is-size-5.is-clickable "note"]]
            [:div.dropdown-item
             [:span.icon
              [:i.fas.fa-keyboard]]
-            [:span.is-size-5 "inputs"]]
+            [:span.is-size-5.is-clickable "inputs"]]
            [:hr.dropdown-divider]
            [:div.dropdown-item
             [:span.icon
              [:i.fas.fa-folder]]
-            [:span.is-size-5 "collection"]]]]]])])
+            [:span.is-size-5.is-clickable "collection"]]]]]])])
 
 (defn header-brand
       []
@@ -62,6 +63,6 @@
              [:div.container
               (case route-name
                     :login-page [login.v/login-view]
-                    :register-page [:h3 "register-page-view"]
+                    :register-page [register.v/register-view]
                     :app-page [:h3 "app-page-view"]
                     [:div "error."])]]]))
