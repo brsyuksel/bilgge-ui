@@ -7,4 +7,5 @@
                 "jsonwebtoken"          "8.5.1"
                 "node-sass"             "5.0.0"
                 "bulma"                 "0.9.1"}
- :npm-deps {"jsencrypt" "3.0.0-rc.1"}}
+ :npm-deps {"jsencrypt"            "3.0.0-rc.1"
+            "crypto-random-string" "3.3.0"}}
