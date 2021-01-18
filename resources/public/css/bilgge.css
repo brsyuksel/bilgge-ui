@@ -7721,3 +7721,11 @@ a.has-text-danger-dark:hover, a.has-text-danger-dark:focus {
   justify-content: flex-end; }
   .management-actions button:last-child {
     margin-left: 10px; }
+
+.register-step {
+  background-color: #fffbeb;
+  border: 1px solid #dbdbdb;
+  border-radius: 4px; }
+
+.register-step.active {
+  background-color: #ffdd57; }
