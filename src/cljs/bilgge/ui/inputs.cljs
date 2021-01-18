@@ -31,3 +31,14 @@
          [:span.file-name @fname-atom]]]
        (when help-text
              [:p.help help-text])])
+
+(defn labeled-large-select
+      [value-atom label options]
+      [:div.field
+       [:label.label.is-large label]
+       [:div.control
+        [:div.select.is-large.is-fullwidth
+         [:select {:on-change #(reset! value-atom (-> % .-target .-value))}
+          (for [[v l] options]
+               ^{:key v}
+               [:option {:value v} l])]]]])
