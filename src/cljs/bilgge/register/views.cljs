@@ -1,10 +1,14 @@
 (ns bilgge.register.views
     (:require [clojure.string :as string]
               [reagent.core :as r]
+              [re-frame.core :as re-frame]
               [goog.crypt.base64 :as b64]
-              ["crypto-random-string" :as crs]
+              [reitit.frontend.easy :as rfe]
               [bilgge.utils :as utils]
-              [bilgge.ui.inputs :as inputs]))
+              [bilgge.ui.inputs :as inputs]
+              [bilgge.ui.messages :as messages]
+              [bilgge.register.events :as e]
+              [bilgge.register.subs :as s]))
 
 (def register-current-step (r/atom "i"))
 (def register-username (r/atom ""))
@@ -14,6 +18,7 @@
 (def register-key-priv-value (r/atom ""))
 (def register-key-pub-fname (r/atom ""))
 (def register-key-pub-value (r/atom ""))
+(def register-donation-coin-select (r/atom "btc"))
 
 (defn register-intro-view
       []
@@ -92,7 +97,7 @@
 (defn register-key-generate-view
       []
       (let [[priv-key pub-key] (utils/generate-rsa-pairs)
-            _ (reset! register-key-pub-value (utils/clear-rsa-key pub-key))
+            _ (reset! register-key-pub-value pub-key)
             hrefy #(str "data:text/plain;base64," (b64/encodeString %))]
            [:<>
             [:div.columns
@@ -135,44 +140,94 @@
             "generate" [register-key-generate-view]
             [register-key-selection-view]))
 
+(defn register-button-handler
+      []
+      (if (and (= @register-key-method "own")
+               (not (true? (utils/verify-rsa-pairs @register-key-priv-value @register-key-pub-value))))
+          (re-frame/dispatch [::e/set-error-message "key pairs verification failed"])
+          (let [pub-key (utils/clear-rsa-key @register-key-pub-value)
+                plain-aes-key (utils/random-string 32)
+                enc-aes-key (utils/encrypt-rsa-string-key pub-key plain-aes-key)
+                plain-hash-salt (utils/random-string 32)
+                enc-hash-salt (utils/encrypt-rsa-string-key pub-key plain-hash-salt)
+                params {:username @register-username
+                        :public_key pub-key
+                        :key enc-aes-key
+                        :salt enc-hash-salt}]
+               (re-frame/dispatch [::e/register params]))))
+
 (defn register-donation-view
      []
-     [:<>
-      [:div.columns
-       [:div.column.is-4.is-offset-4
-        [:div.block.is-size-3 "Pay as much as you want!"]
-        [:div.block.is-size-5
-         [:p
-          "bilgge is totally free, you "
-          [:u "don't"]
-          " have to make payment if you don't want."]]]]
-      [:div.columns
-       [:div.column.is-4.is-offset-4
-        [:div.field
-         [:button.button.is-large.is-light.is-fullwidth
-          [:span.icon.is-large [:i.fab.fa-patreon]]
-          [:span "Patreon"]]]]]
-      [:div.columns
-       [:div.column.is-4.is-offset-4
-        [:div.field.has-addons
-         [:p.control
-          [:span.select.is-large
-           [:select
-            {:name "coin"}
-            [:option {:value "btc"} "btc"]
-            [:option {:value "eth"} "eth"]
-            [:option {:value "xmr"} "xmr"]
-            [:option {:value "eos"} "eos"]
-            [:option {:value "xrp"} "xrp"]]]]
-         [:p.control.is-expanded
-          [:input.input.is-large
-           {:readonly "readonly",
-            :value "coin-wallet-address",
-            :type "text"}]]
-         [:p.control [:a.button.is-large [:i.fas.fa-clipboard]]]]]]
-      [:div.columns
-       [:div.column.is-4.is-offset-4.has-text-right
-        [:button.button.is-primary.is-large "register."]]]])
+     (let [loading? (re-frame/subscribe [::s/loading?])
+           success? (re-frame/subscribe [::s/success?])
+           messages (re-frame/subscribe [::s/body-messages])
+           errors (re-frame/subscribe [::s/error-messages])
+           coin-addresses {"btc" "bc1qx3gs5jskr3utfasxzkh00vf0msncc882kdd5f3"
+                           "bnb" "bnb1ncgwxyggvpaj9aj9mpkqvuhcd6ykygm7pe5mh5"
+                           "dash" "XcjzeCkg3txjFiUpWybTs7mE4k23wtgpK3"
+                           "doge" "DGBH9ECfFuE4uFGvrFkQcGGaZWu29iDLRT"
+                           "zec" "t1fxdXTctTxjUmeZBdfqQH2iCFHxBnombHf"}]
+          [:<>
+           [:div.columns
+            [:div.column.is-4.is-offset-4
+             [:div.block.is-size-3 "Pay as much as you want!"]
+             [:div.block.is-size-5
+              [:p
+               "bilgge is totally free, you "
+               [:u "don't"]
+               " have to make payment if you don't want."]]]]
+           [:div.columns
+            [:div.column.is-4.is-offset-4
+             [:div.field
+              [:button.button.is-large.is-light.is-fullwidth
+               [:span.icon.is-large [:i.fab.fa-patreon]]
+               [:span "Patreon"]]]]]
+           [:div.columns
+            [:div.column.is-4.is-offset-4
+             [:div.field.has-addons
+              [:p.control
+               [:span.select.is-large
+                [:select
+                 {:name "coin"
+                  :on-change #(reset! register-donation-coin-select (-> % .-target .-value))}
+                 [:option {:value "btc"} "btc"]
+                 [:option {:value "bnb"} "bnb"]
+                 [:option {:value "dash"} "dash"]
+                 [:option {:value "doge"} "doge"]
+                 [:option {:value "zec"} "zec"]]]]
+              [:p.control.is-expanded
+               [:input#coin-addr.input.is-large
+                {:readonly "readonly",
+                 :value (get coin-addresses @register-donation-coin-select),
+                 :type "text"}]]
+              [:p.control [:a.button.is-large {:on-click #(let [coin-addr (.getElementById js/document "coin-addr")]
+                                                               (.select coin-addr)
+                                                               (.execCommand js/document "copy"))}
+                           [:i.fas.fa-clipboard]]]]]]
+           [:div.columns
+            [:div.column.is-4.is-offset-4.is-flex.is-justify-content-center
+             [:figure.image.is-128x128
+              [:img {:src (str "images/coin-addr/" @register-donation-coin-select ".png")}]]]]
+           (when (or @errors @messages)
+                 [:div.columns
+                  [:div.column.is-4.is-offset-4
+                   (for [[idx msg] (map-indexed vector @messages)]
+                        ^{:key idx}
+                        [messages/error-message msg])
+                   (for [[idx msg] (map-indexed vector @errors)]
+                        ^{:key (str "e-" idx)}
+                        [messages/error-message msg])]])
+           (when @success?
+                 [:div.columns
+                  [:div.column.is-4.is-offset-4
+                   [messages/primary-message "your registration has been completed! it's time to log in then ..."]]])
+           [:div.columns
+            [:div.column.is-4.is-offset-4.has-text-right
+             [:button {:class ["button" "is-primary" "is-large" (when @loading? "is-loading")]
+                       :on-click (if @success?
+                                     #(rfe/push-state :login-page)
+                                     register-button-handler)
+                       :disabled @loading?} (if @success? "go to login." "register.")]]]]))
 
 (defn register-steps
       []
