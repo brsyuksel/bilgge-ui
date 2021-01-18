@@ -19,3 +19,9 @@
            (do
              (.setPrivateKey enc priv-key)
              (decrypt-rsa enc cipher-text))))
+
+(defn generate-rsa-pairs
+      []
+      (let [enc (jse/JSEncrypt. #{:default_key_size 1024})]
+           (.getKey enc)
+           [(.getPrivateKey enc) (.getPublicKey enc)]))
