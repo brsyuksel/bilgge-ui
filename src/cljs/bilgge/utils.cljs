@@ -1,7 +1,8 @@
 (ns bilgge.utils
     (:require [clojure.string :as string]
               ["jsencrypt" :as jse]
-              ["crypto-random-string" :as crs]))
+              ["crypto-random-string" :as crs]
+              ["aes-js" :as aes]))
 
 (defn random-string
       [len]
@@ -50,3 +51,49 @@
            (= plain (->> plain
                          (encrypt-rsa-string-key pub)
                          (decrypt-rsa-string-key prv)))))
+
+(defn arr->16x-length-arr
+      [arr]
+      (let [cnt (.-length arr)
+            remain (- 16 (mod cnt 16))
+            new-cnt (+ cnt remain)
+            new-arr (js/Uint8Array. new-cnt)]
+           (.set new-arr arr)
+           new-arr))
+
+(defn padded-arr->arr
+      [arr]
+      (let [l (last arr)
+            r (butlast arr)]
+           (if (= l 0)
+               (recur r)
+               (clj->js arr))))
+
+(defn aes-encrypt
+      [key iv plain]
+      (let [to-byte (.. aes -utils -utf8 -toBytes)
+            to-hex (.. aes -utils -hex -fromBytes)
+            key-byte (to-byte key)
+            iv-byte (to-byte iv)
+            plain-byte (to-byte plain)
+            plain-byte (arr->16x-length-arr plain-byte)
+            cbc-enc-constructor (.. aes -ModeOfOperation -cbc)
+            cbc-enc (cbc-enc-constructor. key-byte iv-byte)]
+           (-> cbc-enc
+               (.encrypt plain-byte)
+               to-hex)))
+
+(defn aes-decrypt
+      [key iv hex]
+      (let [str-to-byte (.. aes -utils -utf8 -toBytes)
+            bytes-to-str (.. aes -utils -utf8 -fromBytes)
+            hex-to-byte (.. aes -utils -hex -toBytes)
+            encrypted-bytes (hex-to-byte hex)
+            key-byte (str-to-byte key)
+            iv-byte (str-to-byte iv)
+            cbc-enc-constructor (.. aes -ModeOfOperation -cbc)
+            cbc-enc (cbc-enc-constructor. key-byte iv-byte)]
+           (-> cbc-enc
+               (.decrypt encrypted-bytes)
+               padded-arr->arr
+               bytes-to-str)))
