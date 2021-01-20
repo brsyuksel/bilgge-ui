@@ -7729,3 +7729,19 @@ a.has-text-danger-dark:hover, a.has-text-danger-dark:focus {
 
 .register-step.active {
   background-color: #ffdd57; }
+
+.listing-item {
+  background-color: #fafafa;
+  border-right: 3px solid #7a7a7a; }
+
+.listing-item.active {
+  border-right-color: #121212; }
+
+.columns.is-gapless .column.listing-item {
+  padding: 1rem 0 !important; }
+
+.content-controls .button {
+  margin-left: 0.25rem; }
+
+.collection-modal {
+  background-color: #fafafa; }
