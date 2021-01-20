@@ -72,5 +72,7 @@
                            (assoc :token (-> body :token))
                            (assoc :public-key (-> body :public_key))
                            (assoc :key (-> body :key))
-                           (assoc :salt (-> body :salt)))
+                           (assoc :plain-key (decrypt-login-cipher (:private-key db) (:key body)))
+                           (assoc :salt (-> body :salt))
+                           (assoc :plain-salt (decrypt-login-cipher (:private-key db) (:salt body))))
                    :dispatch [::e/push-state :app-page]})))
