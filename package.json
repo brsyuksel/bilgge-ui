@@ -4,6 +4,7 @@
     "css-build": "node-sass --omit-source-map-url resources/sass/bilgge.sass resources/public/css/bilgge.css"
   },
   "dependencies": {
+    "aes-js": "3.1.2",
     "crypto-random-string": "3.3.0",
     "highlight.js": "9.18.1",
     "jsencrypt": "3.0.0-rc.1",
