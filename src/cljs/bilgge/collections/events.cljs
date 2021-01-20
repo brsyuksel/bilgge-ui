@@ -45,7 +45,7 @@
   (fn-traced [{:keys [db]} [_ params]]
              (let [token (-> db :token)
                    headers {"Authorization" (str "Bearer " token)}]
-               {:db db
+               {:db (assoc-in db [:collections :visibility :creating?] true)
                 :http-xhrio (api/collections-create headers params [::create-collection-ok] [::create-collection-not-ok])})))
 
 (rf/reg-event-db
@@ -53,6 +53,7 @@
   (fn-traced [db [_ response]]
              (-> db
                  (assoc-in [:collections :visibility :loading?] false)
+                 (assoc-in [:collections :visibility :creating?] false)
                  (assoc-in [:collections :result :success] false)
                  (assoc-in [:collections :result :response :body] (keywordize-keys (:response response)))
                  (assoc-in [:collections :result :response :status] (:status response)))))
@@ -60,7 +61,9 @@
 (rf/reg-event-fx
   ::create-collection-ok
   (fn-traced [{:keys [db]} _]
-             {:db (assoc-in db [:collections :result :success] true)
+             {:db (-> db
+                      (assoc-in [:collections :result :success] true)
+                      (assoc-in [:collections :visibility :creating?] false))
               :dispatch [::get-collections]}))
 
 (rf/reg-event-fx
@@ -108,3 +111,8 @@
   (fn-traced [{:keys [db]} _]
              {:db (assoc-in db [:collections :result :success] true)
               :dispatch [::get-collections]}))
+
+(rf/reg-event-db
+  ::display-new-collection-modal
+  (fn [db [_ v]]
+      (assoc-in db [:collections :visibility :display-modal?] v)))
