@@ -1,8 +1,10 @@
 (ns bilgge.views
   (:require [re-frame.core :as re-frame]
             [bilgge.subs :as subs]
+            [bilgge.collections.events :as collevs]
             [bilgge.login.views :as login.v]
-            [bilgge.register.views :as register.v]))
+            [bilgge.register.views :as register.v]
+            [bilgge.panel.views :as panel.v]))
 
 (defn header-add-new-item-menu
       [display?]
@@ -16,19 +18,19 @@
             [:i.fas.fa-plus {:aria-hidden "true"}]]]]
          [:div#create-new-menu.dropdown-menu {:role "menu"}
           [:div.dropdown-content
-           [:div.dropdown-item
+           [:div.dropdown-item.is-clickable
             [:span.icon
              [:i.fas.fa-sticky-note]]
-            [:span.is-size-5.is-clickable "note"]]
-           [:div.dropdown-item
+            [:span.is-size-5 "note"]]
+           [:div.dropdown-item.is-clickable
             [:span.icon
              [:i.fas.fa-keyboard]]
-            [:span.is-size-5.is-clickable "inputs"]]
+            [:span.is-size-5 "inputs"]]
            [:hr.dropdown-divider]
-           [:div.dropdown-item
+           [:div.dropdown-item.is-clickable {:on-click #(re-frame/dispatch [::collevs/display-new-collection-modal true])}
             [:span.icon
              [:i.fas.fa-folder]]
-            [:span.is-size-5.is-clickable "collection"]]]]]])])
+            [:span.is-size-5 "collection"]]]]]])])
 
 (defn header-brand
       []
@@ -64,5 +66,5 @@
               (case route-name
                     :login-page [login.v/login-view]
                     :register-page [register.v/register-view]
-                    :app-page [:h3 "app-page-view"]
-                    [:div "error."])]]]))
+                    :app-page [panel.v/panel-view]
+                    [login.v/login-view])]]]))
