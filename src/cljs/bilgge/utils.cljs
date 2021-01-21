@@ -2,7 +2,8 @@
     (:require [clojure.string :as string]
               ["jsencrypt" :as jse]
               ["crypto-random-string" :as crs]
-              ["aes-js" :as aes]))
+              ["aes-js" :as aes]
+              ["js-sha256" :as js-sha]))
 
 (defn random-string
       [len]
@@ -97,3 +98,7 @@
                (.decrypt encrypted-bytes)
                padded-arr->arr
                bytes-to-str)))
+
+(defn sha256
+      [text]
+      (js-sha text))
