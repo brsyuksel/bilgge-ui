@@ -7745,3 +7745,9 @@ a.has-text-danger-dark:hover, a.has-text-danger-dark:focus {
 
 .collection-modal {
   background-color: #fafafa; }
+
+.text-editor {
+  min-height: calc(100vh - 25rem); }
+
+.content {
+  background-color: #fafafa; }
