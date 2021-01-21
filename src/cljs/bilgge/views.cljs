@@ -2,6 +2,7 @@
   (:require [re-frame.core :as re-frame]
             [bilgge.subs :as subs]
             [bilgge.collections.events :as collevs]
+            [bilgge.secrets.events :as secevs]
             [bilgge.login.views :as login.v]
             [bilgge.register.views :as register.v]
             [bilgge.panel.views :as panel.v]))
@@ -18,7 +19,7 @@
             [:i.fas.fa-plus {:aria-hidden "true"}]]]]
          [:div#create-new-menu.dropdown-menu {:role "menu"}
           [:div.dropdown-content
-           [:div.dropdown-item.is-clickable
+           [:div.dropdown-item.is-clickable {:on-click #(re-frame/dispatch [::secevs/display-editor true])}
             [:span.icon
              [:i.fas.fa-sticky-note]]
             [:span.is-size-5 "note"]]
