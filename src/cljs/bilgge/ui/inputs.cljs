@@ -21,6 +21,18 @@
        (when help-text
              [:p.help help-text])])
 
+(defn large-input-with-placeholder-white-bis
+      [value-atom placeholder help-text]
+      [:div.field
+       [:div.control
+        [:input.input.is-large.has-background-white-bis
+         {:type "text"
+          :placeholder placeholder
+          :value @value-atom
+          :on-change #(reset! value-atom (-> % .-target .-value))}]]
+       (when help-text
+             [:p.help help-text])])
+
 (defn labeled-large-file-input
       [value-atom fname-atom label help-text]
       [:div.field
