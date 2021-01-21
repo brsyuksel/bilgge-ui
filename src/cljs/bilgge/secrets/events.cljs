@@ -21,7 +21,9 @@
   (fn-traced [{:keys [db]} [_ params]]
              (let [token (-> db :token)
                    headers {"Authorization" (str "Bearer " token)}]
-               {:db (assoc-in db [:secrets :visibility :loading?] true)
+               {:db (-> db
+                        (assoc-in [:secrets :visibility :loading?] true)
+                        (assoc-in [:secrets :visibility :list-loading?] true))
                 :http-xhrio (api/secrets-list headers params [::get-secrets-ok] [::get-secrets-not-ok])})))
 
 (rf/reg-event-db
@@ -29,6 +31,7 @@
   (fn-traced [db [_ response]]
              (-> db
                  (assoc-in [:secrets :visibility :loading?] false)
+                 (assoc-in [:secrets :visibility :list-loading?] false)
                  (assoc-in [:secrets :result :success] false)
                  (assoc-in [:secrets :result :response :body] (keywordize-keys (:response response)))
                  (assoc-in [:secrets :result :response :status] (:status response)))))
@@ -44,6 +47,7 @@
                    data (map decrypt data)]
                (-> db
                    (assoc-in [:secrets :visibility :loading?] false)
+                   (assoc-in [:secrets :visibility :list-loading?] false)
                    (assoc-in [:secrets :result :success] true)
                    (assoc-in [:secrets :data] data)))))
 
@@ -52,7 +56,7 @@
   (fn-traced [{:keys [db]} [_ params]]
              (let [token (-> db :token)
                    headers {"Authorization" (str "Bearer " token)}
-                   list-params (-> params (select-keys [:collection_id]) (merge {:page 1}))]
+                   list-params (-> params (select-keys [:collection_id]) (merge {:offset "0" :limit "10"}))]
                {:db db
                 :http-xhrio (api/secrets-create headers params [::create-secret-ok list-params] [::create-secret-not-ok])})))
 
@@ -147,3 +151,8 @@
   (fn-traced [{:keys [db]} [_ params _]]
              {:db (assoc-in db [:secrets :result :success] true)
               :dispatch [::get-secrets params]}))
+
+(rf/reg-event-db
+  ::display-editor
+  (fn-traced [db [_ val]]
+             (assoc-in db [:secrets :visibility :display-editor?] val)))
