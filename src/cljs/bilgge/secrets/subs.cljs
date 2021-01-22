@@ -25,6 +25,18 @@
     (-> secrets :plain)))
 
 (rf/reg-sub
+  ::detail
+  :<- [::secrets]
+  (fn [secrets _]
+      (-> secrets :detail)))
+
+(rf/reg-sub
+  ::selected-id
+  :<- [::secrets]
+  (fn [secrets _]
+      (-> secrets :selected-id)))
+
+(rf/reg-sub
   ::result
   :<- [::secrets]
   (fn [secrets [_ k]]
