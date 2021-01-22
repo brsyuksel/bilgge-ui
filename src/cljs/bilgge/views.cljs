@@ -19,7 +19,10 @@
             [:i.fas.fa-plus {:aria-hidden "true"}]]]]
          [:div#create-new-menu.dropdown-menu {:role "menu"}
           [:div.dropdown-content
-           [:div.dropdown-item.is-clickable {:on-click #(re-frame/dispatch [::secevs/display-editor true])}
+           [:div.dropdown-item.is-clickable {:on-click #(do
+                                                          (reset! panel.v/secret-note-title "")
+                                                          (reset! panel.v/secret-note-content "")
+                                                          (re-frame/dispatch [::secevs/display-editor true]))}
             [:span.icon
              [:i.fas.fa-sticky-note]]
             [:span.is-size-5 "note"]]
@@ -43,7 +46,7 @@
       [:div.column.is-one-fifth.is-offset-one-fifth
        (when display?
              [:div.management-actions
-        [:button.button.is-white.is-large.has-text-grey
+        [:button.button.is-white.is-large.has-text-grey {:on-click #(set! (.. js/window -location -href) "/login")}
          [:span.icon.is-large
           [:i.fas.fa-sign-out-alt]]]])])
 
