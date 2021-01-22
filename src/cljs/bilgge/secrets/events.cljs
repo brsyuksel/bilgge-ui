@@ -72,7 +72,11 @@
 (rf/reg-event-fx
   ::create-secret-ok
   (fn-traced [{:keys [db]} [_ params _]]
-             {:db (assoc-in db [:secrets :result :success] true)
+             {:db (-> db
+                      (assoc-in [:secrets :result :success] true)
+                      (assoc-in [:secrets :visibility :display-editor?] false)
+                      (assoc-in [:secrets :selected-id] nil)
+                      (assoc-in [:secrets :detail] nil))
               :dispatch [::get-secrets params]}))
 
 (rf/reg-event-fx
@@ -80,14 +84,14 @@
   (fn-traced [{:keys [db]} [_ id]]
              (let [token (-> db :token)
                    headers {"Authorization" (str "Bearer " token)}]
-               {:db (assoc-in db [:secrets :visibility :loading?] true)
+               {:db (assoc-in db [:secrets :visibility :detail-loading?] true)
                 :http-xhrio (api/secret-detail id headers [::get-secret-detail-ok] [::get-secret-detail-not-ok])})))
 
 (rf/reg-event-db
   ::get-secret-detail-not-ok
   (fn-traced [db [_ response]]
              (-> db
-                 (assoc-in [:secrets :visibility :loading?] false)
+                 (assoc-in [:secrets :visibility :detail-loading?] false)
                  (assoc-in [:secrets :result :success] false)
                  (assoc-in [:secrets :result :response :body] (keywordize-keys (:response response)))
                  (assoc-in [:secrets :result :response :status] (:status response)))))
@@ -100,9 +104,10 @@
                    aes-key (:key db)
                    data (decrypt-secret body priv-key aes-key)]
                (-> db
-                   (assoc-in [:secrets :visibility :loading?] false)
+                   (assoc-in [:secrets :visibility :detail-loading?] false)
                    (assoc-in [:secrets :result :success] true)
-                   (assoc-in [:secrets :plain] data)))))
+                   (assoc-in [:secrets :plain] data)
+                   (assoc-in [:secrets :detail] data)))))
 
 (rf/reg-event-fx
   ::edit-secret
@@ -125,7 +130,11 @@
 (rf/reg-event-fx
   ::edit-secret-ok
   (fn-traced [{:keys [db]} [_ params _]]
-             {:db (assoc-in db [:secrets :result :success] true)
+             {:db (-> db
+                      (assoc-in [:secrets :result :success] true)
+                      (assoc-in [:secrets :visibility :display-editor?] false)
+                      (assoc-in [:secrets :selected-id] nil)
+                      (assoc-in [:secrets :detail] nil))
               :dispatch [::get-secrets params]}))
 
 (rf/reg-event-fx
@@ -133,8 +142,10 @@
   (fn-traced [{:keys [db]} [_ collection-id id]]
              (let [token (-> db :token)
                    headers {"Authorization" (str "Bearer " token)}
-                   list-params {:page 1 :collection_id collection-id}]
-               {:db db
+                   list-params {:offset "0" :limit "10" :collection_id collection-id}]
+               {:db (-> db
+                        (assoc-in [:secrets :selected-id] nil)
+                        (assoc-in [:secrets :detail] nil))
                 :http-xhrio (api/secret-delete id headers [::delete-secret-ok list-params] [::delete-secret-not-ok])})))
 
 (rf/reg-event-db
@@ -156,3 +167,13 @@
   ::display-editor
   (fn-traced [db [_ val]]
              (assoc-in db [:secrets :visibility :display-editor?] val)))
+
+(rf/reg-event-db
+  ::editing?
+  (fn-traced [db [_ val]]
+             (assoc-in db [:secrets :visibility :editing?] val)))
+
+(rf/reg-event-db
+  ::select-secret
+  (fn-traced [db [_ id]]
+             (assoc-in db [:secrets :selected-id] id)))
