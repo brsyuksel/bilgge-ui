@@ -94,18 +94,19 @@
         [:span.icon.is-right [:i.fas.fa-search]]]])
 
 (def secret-note-title (r/atom ""))
+(def secret-note-content (r/atom ""))
 (defn send-note-form
       []
-      (let [pub-key @(re-frame/subscribe [::subs/public-key])
+      (let [editing? @(re-frame/subscribe [::secsubs/visibility :editing?])
+            selected-id @(re-frame/subscribe [::secsubs/selected-id])
+            pub-key @(re-frame/subscribe [::subs/public-key])
             plain-key @(re-frame/subscribe [::subs/plain-key])
             hash-salt @(re-frame/subscribe [::subs/plain-salt])
-            note-input (.getElementById js/document "note-body")
-            note-plain (.-value note-input)
             plain-iv (utils/random-string 16)
             enc-iv (utils/encrypt-rsa-string-key pub-key plain-iv)
             enc-type (utils/aes-encrypt plain-key plain-iv "note")
             enc-title (utils/aes-encrypt plain-key plain-iv @secret-note-title)
-            enc-body (utils/aes-encrypt plain-key plain-iv note-plain)
+            enc-body (utils/aes-encrypt plain-key plain-iv @secret-note-content)
             hashes (->> (string/split @secret-note-title #"\s")
                         (map #(str % hash-salt))
                         (map utils/sha256))
@@ -115,21 +116,31 @@
                     :content enc-body
                     :_iv enc-iv
                     :hashes hashes}]
-           (re-frame/dispatch [::secevs/create-secret params])))
+           (if-not editing?
+                   (re-frame/dispatch [::secevs/create-secret params])
+                   (re-frame/dispatch [::secevs/edit-secret @selected-collection selected-id params]))
+           (reset! secret-note-title "")
+           (reset! secret-note-content "")))
 (defn content-actions
       []
-      (let [display-editor? (re-frame/subscribe [::secsubs/visibility :display-editor?])]
+      (let [display-editor? (re-frame/subscribe [::secsubs/visibility :display-editor?])
+            selected-id (re-frame/subscribe [::secsubs/selected-id])]
            (cond
-             false [:<>
-                    [:button.button.is-light.is-danger
-                     [:span.icon.is-large [:i.fas.fa-trash]]]
-                    [:button.button.is-light [:span.icon.is-large [:i.fas.fa-pen]]]]
              @display-editor? [:<>
                                [:button.button.is-outlined {:on-click #(do
                                                                          (reset! secret-note-title "")
-                                                                         (re-frame/dispatch [::secevs/display-editor false]))} "discard"]
+                                                                         (reset! secret-note-content "")
+                                                                         (re-frame/dispatch [::secevs/display-editor false])
+                                                                         (re-frame/dispatch [::secevs/editing? false]))} "discard"]
                                [:button.button.is-primary {:on-click #(do
-                                                                        (send-note-form))} "save."]])))
+                                                                        (send-note-form))} "save."]]
+             @selected-id [:<>
+                           [:button.button.is-light.is-danger {:on-click #(re-frame/dispatch [::secevs/delete-secret @selected-collection @selected-id])}
+                            [:span.icon.is-large [:i.fas.fa-trash]]]
+                           [:button.button.is-light {:on-click #(do
+                                                                  (re-frame/dispatch [::secevs/editing? true])
+                                                                  (re-frame/dispatch [::secevs/display-editor true]))}
+                            [:span.icon.is-large [:i.fas.fa-pen]]]])))
 
 (defn content-header
       []
@@ -162,8 +173,11 @@
          [:span.icon [:i.fas.fa-angle-double-right]]]]])
 
 (defn secret-item
-      [type name created-at active?]
-      [:div {:class ["column" "is-clickable" "is-full" "listing-item" (when active? "active")]}
+      [id type name created-at active?]
+      [:div {:class ["column" "is-clickable" "is-full" "listing-item" (when active? "active")]
+             :on-click #(do
+                          (re-frame/dispatch [::secevs/select-secret id])
+                          (re-frame/dispatch [::secevs/get-secret-detail id]))}
        [:div.columns
         [:div.column.is-one-fifth.is-flex.is-flex-direction-row.is-align-items-center.is-justify-content-center.has-text-grey
          [:span.icon.is-large
@@ -177,19 +191,20 @@
 (defn listing-secrets
       []
       (let [secrets @(re-frame/subscribe [::secsubs/data])
+            selected-id @(re-frame/subscribe [::secsubs/selected-id])
             priv-key @(re-frame/subscribe [::subs/private-key])
             plain-key @(re-frame/subscribe [::subs/plain-key])
             rsa-decrypt #(utils/decrypt-rsa-string-key priv-key %)]
-           [:div.columns.is-gapless.is-multiline
+           (if (> (count secrets) 0) [:div.columns.is-gapless.is-multiline
             (for [secret secrets]
                  (let [iv (:_iv secret)
                        plain-iv (rsa-decrypt iv)
-                       _ (println (utils/aes-decrypt plain-key plain-iv (:title secret)))
                        s-type (utils/aes-decrypt plain-key plain-iv (:type secret))
                        title (utils/aes-decrypt plain-key plain-iv (:title secret))
                        created-at (:created_at secret)]
                       ^{:key (:id secret)}
-                      [secret-item s-type title created-at false]))]))
+                      [secret-item (:id secret) s-type title created-at (= selected-id (:id secret))]))]
+               [:div.columns "empty list"])))
 
 (defn side-bar
       []
@@ -234,13 +249,33 @@
            [:span.icon.is-large [:i.fas.fa-list-ol]]]]]
         [:div.columns
          [:div.column
-          [:input#note-body {:type "hidden"}]
+          [:input#note-body {:type "hidden" :value @secret-note-content}]
           [:trix-editor.text-editor
            {:contenteditable "",
             :role "textbox",
             :input "note-body",
             :placeholder "Note down your secrets here.",
             :toolbar "editor-toolbar"}]]]]])
+
+(defn secret-content
+      []
+      (if-let [detail @(re-frame/subscribe [::secsubs/detail])]
+              (let [priv-key @(re-frame/subscribe [::subs/private-key])
+                    plain-key @(re-frame/subscribe [::subs/plain-key])
+                    plain-iv (utils/decrypt-rsa-string-key priv-key (:_iv detail))
+                    plain-title (utils/aes-decrypt plain-key plain-iv (:title detail))
+                    plain-content (utils/aes-decrypt plain-key plain-iv (:content detail))
+                    _ (reset! secret-note-title plain-title)
+                    _ (reset! secret-note-content plain-content)]
+                   [:div.column
+                    [:div.content.p-3
+                     [:div.columns.content-title
+                      [:div.column
+                       [:h2 plain-title]
+                       [:div.divider.is-right (str "Last Update at " (:updated_at detail))]]]
+                     [:div.columns
+                      [:div.column {:dangerouslySetInnerHTML {:__html plain-content}}]]]])
+              [:h3 "EMPTY SCREEN"]))
 
 (defn content-wrapper
       []
@@ -255,8 +290,9 @@
            [:div.columns
             [create-new-collection-modal new-coll-msg display? cancelable?]
             [side-bar]
-            (when @display-editor?
-                  [note-form])]))
+            (if @display-editor?
+                [note-form]
+                [secret-content])]))
 
 (defn panel-view
       []
@@ -264,7 +300,10 @@
                                                 (let [token (re-frame/subscribe [::subs/token])]
                                                      (when-not @token
                                                                (re-frame/dispatch [::events/push-state :login-page]))
-                                                     (re-frame/dispatch [::collevs/get-collections])))
+                                                     (re-frame/dispatch [::collevs/get-collections])
+                                                     (.addEventListener js/window "trix-change" #(let [note-input (.getElementById js/document "note-body")
+                                                                                                       note-plain (.-value note-input)]
+                                                                                                      (reset! secret-note-content note-plain)))))
                        :render (fn []
                                    [:<>
                                     [content-header]
