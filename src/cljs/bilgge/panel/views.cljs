@@ -107,7 +107,8 @@
 (def secret-note-content (r/atom ""))
 (defn send-note-form
       []
-      (let [display-editor? @(re-frame/subscribe [::secsubs/visibility :display-editor?])
+      (let [_ (swap! secret-note-title string/trim)
+            display-editor? @(re-frame/subscribe [::secsubs/visibility :display-editor?])
             plain-type (if (= display-editor? :note) "note" "inputs")
             editing? @(re-frame/subscribe [::secsubs/visibility :editing?])
             selected-id @(re-frame/subscribe [::secsubs/selected-id])
@@ -129,11 +130,14 @@
                     :content enc-body
                     :_iv enc-iv
                     :hashes hashes}]
-           (if-not editing?
-                   (re-frame/dispatch [::secevs/create-secret params])
-                   (re-frame/dispatch [::secevs/edit-secret @selected-collection selected-id params]))
-           (reset! secret-note-title "")
-           (reset! secret-note-content "")))
+           (if (or (string/blank? @secret-note-title) (string/blank? @secret-note-content))
+               (error-message "Title and content cannot be empty.")
+               (do
+                 (if-not editing?
+                         (re-frame/dispatch [::secevs/create-secret params])
+                         (re-frame/dispatch [::secevs/edit-secret @selected-collection selected-id params]))
+                 (reset! secret-note-title "")
+                 (reset! secret-note-content "")))))
 (defn content-actions
       []
       (let [display-editor? (re-frame/subscribe [::secsubs/visibility :display-editor?])
