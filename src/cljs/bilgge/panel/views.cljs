@@ -60,13 +60,11 @@
 (def selected-collection (r/atom nil))
 (def offset (r/atom 0))
 (def limit (r/atom 10))
-(def search-hashes (r/atom ""))
-(defn get-collections
+(defn get-collection-secrets
       []
       (let [params {:collection_id @selected-collection
                     :offset @offset
-                    :limit @limit
-                    :q @search-hashes}]
+                    :limit @limit}]
            (re-frame/dispatch [::secevs/get-secrets params])))
 
 (defn collection-selector
@@ -81,14 +79,14 @@
             _ (when-not @selected-collection
                         (do
                           (reset! selected-collection (-> collections-raw first :id))
-                          (get-collections)))]
+                          (get-collection-secrets)))]
            [:div.control.has-icons-left
             [:div.select.is-fullwidth
              [:select {:on-change #(do
                                      (reset! selected-collection (-> % .-target .-value))
                                      (reset! offset 0)
                                      (reset! limit 10)
-                                     (get-collections))}
+                                     (get-collection-secrets))}
               (for [coll collections-raw]
                    ^{:key (:id coll)}
                    [:option {:value (:id coll)
@@ -100,7 +98,19 @@
       []
       [:div.column.is-half.is-offset-one-quarter
        [:div.control.has-icons-right
-        [:input.input {:placeholder "keyword", :type "search"}]
+        [:input.input {:placeholder "keyword"
+                       :type "search"
+                       :on-change #(let [val (string/trim (-> % .-target .-value))
+                                         hash-salt @(re-frame/subscribe [::subs/plain-salt])
+                                         hashes (->> (string/split val #"\s")
+                                                     (map (fn [v] (str v hash-salt)))
+                                                     (map utils/sha256))
+                                         h (if (string/blank? val) nil hashes)
+                                         params {:collection_id @selected-collection
+                                                 :offset @offset
+                                                 :limit @limit}]
+                                        (re-frame/dispatch-sync [::secevs/search-hashes h])
+                                        (re-frame/dispatch [::secevs/get-secrets params]))}]
         [:span.icon.is-right [:i.fas.fa-search]]]])
 
 (def secret-note-title (r/atom ""))
@@ -180,7 +190,7 @@
                                                         :on-click #(do
                                                                      (swap! offset - 10)
                                                                      (swap! limit - 10)
-                                                                     (get-collections))}
+                                                                     (get-collection-secrets))}
          [:span.icon [:i.fas.fa-angle-double-left]]]]
        [:div.column.is-flex.is-flex-direction-row.is-justify-content-center.is-align-items-center
         [:h2 (str @offset "-" @limit)]]
@@ -188,7 +198,7 @@
         [:button.button.is-light.is-small.is-fullwidth {:on-click #(do
                                                                      (swap! offset + 10)
                                                                      (swap! limit + 10)
-                                                                     (get-collections))}
+                                                                     (get-collection-secrets))}
          [:span.icon [:i.fas.fa-angle-double-right]]]]])
 
 (defn secret-item

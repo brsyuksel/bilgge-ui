@@ -1,5 +1,6 @@
 (ns bilgge.secrets.events
   (:require [clojure.walk :refer [keywordize-keys]]
+            [clojure.string :as string]
             [re-frame.core :as rf]
             [day8.re-frame.http-fx]
             [day8.re-frame.tracing :refer-macros [fn-traced]]
@@ -20,7 +21,10 @@
   ::get-secrets
   (fn-traced [{:keys [db]} [_ params]]
              (let [token (-> db :token)
-                   headers {"Authorization" (str "Bearer " token)}]
+                   headers {"Authorization" (str "Bearer " token)}
+                   hashes (-> db :secrets :search-hashes)
+                   q (if hashes (string/join "," hashes) "")
+                   params (merge params {:q q})]
                {:db (-> db
                         (assoc-in [:secrets :visibility :loading?] true)
                         (assoc-in [:secrets :visibility :list-loading?] true))
@@ -185,3 +189,8 @@
   ::set-selected-secret-type
   (fn-traced [db [_ type]]
              (assoc-in db [:secrets :selected-secret-type] type)))
+
+(rf/reg-event-db
+  ::search-hashes
+  (fn-traced [db [_ hashes]]
+             (assoc-in db [:secrets :search-hashes] hashes)))
