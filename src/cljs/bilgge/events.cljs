@@ -8,20 +8,20 @@
 (re-frame/reg-event-db
  ::initialize-db
  (fn-traced [_ _]
-   db/default-db))
+            db/default-db))
 
 (re-frame/reg-event-db
-  ::set-route-name
-  (fn-traced [db [_ name]]
-             (assoc db :route-name name)))
+ ::set-route-name
+ (fn-traced [db [_ name]]
+            (assoc db :route-name name)))
 
 (re-frame/reg-event-db
-  ::set-private-key
-  (fn-traced [db [_ priv-key]]
-             (assoc db :private-key priv-key)))
+ ::set-private-key
+ (fn-traced [db [_ priv-key]]
+            (assoc db :private-key priv-key)))
 
 (re-frame/reg-event-db
-  ::push-state
-  (fn-traced [db [_ state]]
-             (rfe/push-state state)
-             db))
+ ::push-state
+ (fn-traced [db [_ state]]
+            (rfe/push-state state)
+            db))

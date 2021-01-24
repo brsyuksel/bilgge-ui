@@ -2,48 +2,48 @@
   (:require [re-frame.core :as rf]))
 
 (rf/reg-sub
-  ::collections
-  (fn [db _]
-    (:collections db)))
+ ::collections
+ (fn [db _]
+   (:collections db)))
 
 (rf/reg-sub
-  ::visibility
-  :<- [::collections]
-  (fn [collections [_ k]]
-    (-> collections :visibility k)))
+ ::visibility
+ :<- [::collections]
+ (fn [collections [_ k]]
+   (-> collections :visibility k)))
 
 (rf/reg-sub
-  ::data
-  :<- [::collections]
-  (fn [collections _]
-    (-> collections :data)))
+ ::data
+ :<- [::collections]
+ (fn [collections _]
+   (-> collections :data)))
 
 (rf/reg-sub
-  ::result
-  :<- [::collections]
-  (fn [collections [_ k]]
-    (-> collections :result k)))
+ ::result
+ :<- [::collections]
+ (fn [collections [_ k]]
+   (-> collections :result k)))
 
 (rf/reg-sub
-  ::success?
-  :<- [::result :success]
-  (fn [success? _]
-    success?))
+ ::success?
+ :<- [::result :success]
+ (fn [success? _]
+   success?))
 
 (rf/reg-sub
-  ::response
-  :<- [::result :response]
-  (fn [response _]
-    response))
+ ::response
+ :<- [::result :response]
+ (fn [response _]
+   response))
 
 (rf/reg-sub
-  ::response-body
-  :<- [::response]
-  (fn [response _]
-      (:body response)))
+ ::response-body
+ :<- [::response]
+ (fn [response _]
+   (:body response)))
 
 (rf/reg-sub
-  ::response-status
-  :<- [::response]
-  (fn [response _]
-      (:status response)))
+ ::response-status
+ :<- [::response]
+ (fn [response _]
+   (:status response)))

@@ -2,60 +2,60 @@
   (:require [re-frame.core :as rf]))
 
 (rf/reg-sub
-  ::register
-  (fn [db _]
-    (:register db)))
+ ::register
+ (fn [db _]
+   (:register db)))
 
 (rf/reg-sub
-  ::visibility
-  :<- [::register]
-  (fn [register [_ k]]
-    (-> register :visibility k)))
+ ::visibility
+ :<- [::register]
+ (fn [register [_ k]]
+   (-> register :visibility k)))
 
 (rf/reg-sub
-  ::loading?
-  :<- [::visibility :loading?]
-  (fn [loading? _]
-    loading?))
+ ::loading?
+ :<- [::visibility :loading?]
+ (fn [loading? _]
+   loading?))
 
 (rf/reg-sub
-  ::result
-  :<- [::register]
-  (fn [register [_ k]]
-    (-> register :result k)))
+ ::result
+ :<- [::register]
+ (fn [register [_ k]]
+   (-> register :result k)))
 
 (rf/reg-sub
-  ::success?
-  :<- [::result :success]
-  (fn [success? _]
-    success?))
+ ::success?
+ :<- [::result :success]
+ (fn [success? _]
+   success?))
 
 (rf/reg-sub
-  ::response
-  :<- [::result :response]
-  (fn [response _]
-    response))
+ ::response
+ :<- [::result :response]
+ (fn [response _]
+   response))
 
 (rf/reg-sub
-  ::response-body
-  :<- [::response]
-  (fn [response _]
-    (:body response)))
+ ::response-body
+ :<- [::response]
+ (fn [response _]
+   (:body response)))
 
 (rf/reg-sub
-  ::response-status
-  :<- [::response]
-  (fn [response _]
-      (:status response)))
+ ::response-status
+ :<- [::response]
+ (fn [response _]
+   (:status response)))
 
 (rf/reg-sub
-  ::body-messages
-  :<- [::response-body]
-  (fn [body _]
-      (:messages body)))
+ ::body-messages
+ :<- [::response-body]
+ (fn [body _]
+   (:messages body)))
 
 (rf/reg-sub
-  ::error-messages
-  :<- [::result :error]
-  (fn [err _]
-      (:messages err)))
+ ::error-messages
+ :<- [::result :error]
+ (fn [err _]
+   (:messages err)))
