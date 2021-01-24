@@ -210,7 +210,16 @@
                        created-at (:created_at secret)]
                       ^{:key (:id secret)}
                       [secret-item (:id secret) s-type title created-at (= selected-id (:id secret))]))]
-               [:div.columns "empty list"])))
+               [:div.column.is-full.listing-item
+                [:div.columns
+                 [:div.column.is-flex.is-justify-content-center.has-text-grey
+                  [:span.icon.is-size-2.p-5 [:i.fas.fa-user-secret]]]]
+                [:div.columns
+                 [:div.column.is-flex.is-justify-content-center.has-text-grey
+                  [:p.has-text-grey "No, no more secrets."]]]
+                [:div.columns
+                 [:div.column.is-flex.is-justify-content-center.has-text-grey
+                  [:p.help "You can create new secret by using" [:strong " plus "] "button."]]]])))
 
 (defn side-bar
       []
@@ -337,7 +346,14 @@
                      (if (= plain-type "note")
                          [display-note-content plain-content]
                          [display-inputs-content (-> (.parse js/JSON plain-content) (js->clj :keywordize-keys true))])]])
-              [:h3 "EMPTY SCREEN"]))
+              [:div.column
+               [:div.content.p-3
+                [:div.columns
+                 [:div.column.is-half.is-offset-one-quarter.is-flex.is-justify-content-center.has-text-grey.p-5
+                  [:span.icon.is-size-2 [:i.fas.fa-door-closed]]]]
+                [:div.columns
+                 [:div.column.is-half.is-offset-one-quarter.is-flex.is-justify-content-center.has-text-grey
+                  [:p "Choose a secret from the list to display."]]]]]))
 
 (defn content-wrapper
       []
