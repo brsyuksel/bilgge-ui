@@ -7815,6 +7815,9 @@ a.has-text-danger-dark:hover, a.has-text-danger-dark:focus {
 .collection-modal {
   background-color: #fafafa; }
 
+#editor-toolbar button.trix-active {
+  background-color: whitesmoke; }
+
 .text-editor {
   min-height: calc(100vh - 25rem); }
 
