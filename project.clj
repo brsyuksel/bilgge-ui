@@ -114,7 +114,6 @@
    {:source-paths ["script"]}
 
    :prod {}
-   
 }
 
   :prep-tasks [])
