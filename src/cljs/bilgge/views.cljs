@@ -22,11 +22,14 @@
            [:div.dropdown-item.is-clickable {:on-click #(do
                                                           (reset! panel.v/secret-note-title "")
                                                           (reset! panel.v/secret-note-content "")
-                                                          (re-frame/dispatch [::secevs/display-editor true]))}
+                                                          (re-frame/dispatch [::secevs/display-editor :note]))}
             [:span.icon
              [:i.fas.fa-sticky-note]]
             [:span.is-size-5 "note"]]
-           [:div.dropdown-item.is-clickable
+           [:div.dropdown-item.is-clickable {:on-click #(do
+                                                          (reset! panel.v/secret-note-title "")
+                                                          (reset! panel.v/secret-note-content [{:id (str (random-uuid)) :key "" :value ""}])
+                                                          (re-frame/dispatch [::secevs/display-editor :inputs]))}
             [:span.icon
              [:i.fas.fa-keyboard]]
             [:span.is-size-5 "inputs"]]
