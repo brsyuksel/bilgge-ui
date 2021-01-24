@@ -320,7 +320,7 @@
       [:<>
        (for [data content]
            ^{:key (:id data)}
-           [:div.columns
+           [:div.columns.mb-4
             [:div.column.is-half.is-offset-one-quarter
              [inputs/medium-secret-input-with-clipboard (:id data) (:key data) (:value data)]]])])
 
