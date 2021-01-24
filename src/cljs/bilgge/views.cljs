@@ -22,14 +22,20 @@
            [:div.dropdown-item.is-clickable {:on-click #(do
                                                           (reset! panel.v/secret-note-title "")
                                                           (reset! panel.v/secret-note-content "")
-                                                          (re-frame/dispatch [::secevs/display-editor :note]))}
+                                                          (re-frame/dispatch [::secevs/display-editor :note])
+                                                          (re-frame/dispatch [::secevs/editing? false])
+                                                          (re-frame/dispatch [::secevs/set-selected-secret-type nil])
+                                                          (re-frame/dispatch [::secevs/select-secret nil]))}
             [:span.icon
              [:i.fas.fa-sticky-note]]
             [:span.is-size-5 "note"]]
            [:div.dropdown-item.is-clickable {:on-click #(do
                                                           (reset! panel.v/secret-note-title "")
                                                           (reset! panel.v/secret-note-content [{:id (str (random-uuid)) :key "" :value ""}])
-                                                          (re-frame/dispatch [::secevs/display-editor :inputs]))}
+                                                          (re-frame/dispatch [::secevs/display-editor :inputs])
+                                                          (re-frame/dispatch [::secevs/editing? false])
+                                                          (re-frame/dispatch [::secevs/set-selected-secret-type nil])
+                                                          (re-frame/dispatch [::secevs/select-secret nil]))}
             [:span.icon
              [:i.fas.fa-keyboard]]
             [:span.is-size-5 "inputs"]]
