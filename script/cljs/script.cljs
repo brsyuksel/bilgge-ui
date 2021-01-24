@@ -31,6 +31,7 @@
 (def valid-token (.sign jwt (clj->js {:username valid-user :user_id valid-user-id}) jwt-ci-secret (clj->js {:expiresIn "6h"})))
 (def bearer (str "Bearer " valid-token))
 (def valid-bearer (term "Bearer\\s[a-zA-Z0-9._-]{1,}$" bearer))
+(def login-cipher "JoVq5oVBVxB2k/kdFsxoowLidnOwm4gJwSMijAMKKUKW/f1Gec5OA/YogjQSmoJOYP+GcPAb4IpKZIsFvrrrchbKdCY8lu4tE9iG2TKxeXTx0nnFBKsP5W9w5RXyqUXTHpTu51W8IG+LoItxmi3zvWbEeuQY+AcO8vAorP47KJ8=")
 ;; ---------------------------------------------------------------------------------------
 
 (def register-success
@@ -82,7 +83,7 @@
                           :body {:username "ybaroj"}}
             :willRespondWith {:status 200
                               :headers {"Content-Type" "application/json"}
-                              :body {:cipher (like "test-cipher")}}}))
+                              :body {:cipher (like login-cipher)}}}))
 
 (def login-authenticate-invalid
   (clj->js {:uponReceiving "invalid plain text post /login/authenticate"
@@ -224,7 +225,8 @@
                           :headers {"Authorization" "Bearer"}
                           :query {:collection_id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
                                   :offset "0"
-                                  :limit "10"}}
+                                  :limit "10"
+                                  :q ""}}
             :willRespondWith {:status 403}}))
 
 (def secrets-list
@@ -234,7 +236,8 @@
                           :headers {"Authorization" valid-bearer}
                           :query {:collection_id "5f6a97a3-52eb-44b2-983f-de9fc5bea7b8"
                                   :offset "0"
-                                  :limit "10"}}
+                                  :limit "10"
+                                  :q ""}}
             :willRespondWith {:status 200
                               :headers {"Content-Type" "application/json"}
                               :body {:pagination {:total (like 1)
