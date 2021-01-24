@@ -3,7 +3,8 @@
             [re-frame.core :as rf]
             [day8.re-frame.http-fx]
             [day8.re-frame.tracing :refer-macros [fn-traced]]
-            [bilgge.api :as api]))
+            [bilgge.api :as api]
+            [bilgge.events :as events]))
 
 (defn decrypt-collection-name
   [{:keys [name _iv] :as d} private-key aes-key]
@@ -17,14 +18,15 @@
               {:db (assoc-in db [:collections :visibility :loaded?] false)
                :http-xhrio (api/collections-list headers nil [::get-collections-ok] [::get-collections-not-ok])})))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  ::get-collections-not-ok
- (fn-traced [db [_ response]]
-            (-> db
-                (assoc-in [:collections :visibility :loaded?] true)
-                (assoc-in [:collections :result :success] false)
-                (assoc-in [:collections :result :response :body] (keywordize-keys (:response response)))
-                (assoc-in [:collections :result :response :status] (:status response)))))
+ (fn-traced [{:keys [db]} [_ response]]
+            {:db (-> db
+                     (assoc-in [:collections :visibility :loaded?] true)
+                     (assoc-in [:collections :result :success] false)
+                     (assoc-in [:collections :result :response :body] (keywordize-keys (:response response)))
+                     (assoc-in [:collections :result :response :status] (:status response)))
+             :dispatch [::events/display-response-errors response]}))
 
 (rf/reg-event-db
  ::get-collections-ok
@@ -48,15 +50,16 @@
               {:db (assoc-in db [:collections :visibility :creating?] true)
                :http-xhrio (api/collections-create headers params [::create-collection-ok] [::create-collection-not-ok])})))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  ::create-collection-not-ok
- (fn-traced [db [_ response]]
-            (-> db
-                (assoc-in [:collections :visibility :loading?] false)
-                (assoc-in [:collections :visibility :creating?] false)
-                (assoc-in [:collections :result :success] false)
-                (assoc-in [:collections :result :response :body] (keywordize-keys (:response response)))
-                (assoc-in [:collections :result :response :status] (:status response)))))
+ (fn-traced [{:keys [db]} [_ response]]
+            {:db (-> db
+                     (assoc-in [:collections :visibility :loading?] false)
+                     (assoc-in [:collections :visibility :creating?] false)
+                     (assoc-in [:collections :result :success] false)
+                     (assoc-in [:collections :result :response :body] (keywordize-keys (:response response)))
+                     (assoc-in [:collections :result :response :status] (:status response)))
+             :dispatch [::events/display-response-errors response]}))
 
 (rf/reg-event-fx
  ::create-collection-ok
@@ -74,14 +77,15 @@
               {:db db
                :http-xhrio (api/collection-update id headers params [::edit-collection-ok] [::edit-collection-not-ok])})))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  ::edit-collection-not-ok
- (fn-traced [db [_ response]]
-            (-> db
-                (assoc-in [:collections :visibility :loading?] false)
-                (assoc-in [:collections :result :success] false)
-                (assoc-in [:collections :result :response :body] (keywordize-keys (:response response)))
-                (assoc-in [:collections :result :response :status] (:status response)))))
+ (fn-traced [{:keys [db]} [_ response]]
+            {:db (-> db
+                     (assoc-in [:collections :visibility :loading?] false)
+                     (assoc-in [:collections :result :success] false)
+                     (assoc-in [:collections :result :response :body] (keywordize-keys (:response response)))
+                     (assoc-in [:collections :result :response :status] (:status response)))
+             :dispatch [::events/display-response-errors response]}))
 
 (rf/reg-event-fx
  ::edit-collection-ok
@@ -97,14 +101,15 @@
               {:db db
                :http-xhrio (api/collection-delete id headers [::delete-collection-ok] [::delete-collection-not-ok])})))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  ::delete-collection-not-ok
- (fn-traced [db [_ response]]
-            (-> db
-                (assoc-in [:collections :visibility :loading?] false)
-                (assoc-in [:collections :result :success] false)
-                (assoc-in [:collections :result :response :body] (keywordize-keys (:response response)))
-                (assoc-in [:collections :result :response :status] (:status response)))))
+ (fn-traced [{:keys [db]} [_ response]]
+            {:db (-> db
+                     (assoc-in [:collections :visibility :loading?] false)
+                     (assoc-in [:collections :result :success] false)
+                     (assoc-in [:collections :result :response :body] (keywordize-keys (:response response)))
+                     (assoc-in [:collections :result :response :status] (:status response)))
+             :dispatch [::events/display-response-errors response]}))
 
 (rf/reg-event-fx
  ::delete-collection-ok

@@ -4,7 +4,8 @@
             [re-frame.core :as rf]
             [day8.re-frame.http-fx]
             [day8.re-frame.tracing :refer-macros [fn-traced]]
-            [bilgge.api :as api]))
+            [bilgge.api :as api]
+            [bilgge.events :as events]))
 
 (defn decrypt-secret-info
   [{:keys [type title _iv] :as s} private-key aes-key]
@@ -30,15 +31,16 @@
                        (assoc-in [:secrets :visibility :list-loading?] true))
                :http-xhrio (api/secrets-list headers params [::get-secrets-ok] [::get-secrets-not-ok])})))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  ::get-secrets-not-ok
- (fn-traced [db [_ response]]
-            (-> db
-                (assoc-in [:secrets :visibility :loading?] false)
-                (assoc-in [:secrets :visibility :list-loading?] false)
-                (assoc-in [:secrets :result :success] false)
-                (assoc-in [:secrets :result :response :body] (keywordize-keys (:response response)))
-                (assoc-in [:secrets :result :response :status] (:status response)))))
+ (fn-traced [{:keys [db]} [_ response]]
+            {:db (-> db
+                     (assoc-in [:secrets :visibility :loading?] false)
+                     (assoc-in [:secrets :visibility :list-loading?] false)
+                     (assoc-in [:secrets :result :success] false)
+                     (assoc-in [:secrets :result :response :body] (keywordize-keys (:response response)))
+                     (assoc-in [:secrets :result :response :status] (:status response)))
+             :dispatch [::events/display-response-errors response]}))
 
 (rf/reg-event-db
  ::get-secrets-ok
@@ -64,14 +66,15 @@
               {:db db
                :http-xhrio (api/secrets-create headers params [::create-secret-ok list-params] [::create-secret-not-ok])})))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  ::create-secret-not-ok
- (fn-traced [db [_ response]]
-            (-> db
-                (assoc-in [:secrets :visibility :loading?] false)
-                (assoc-in [:secrets :result :success] false)
-                (assoc-in [:secrets :result :response :body] (keywordize-keys (:response response)))
-                (assoc-in [:secrets :result :response :status] (:status response)))))
+ (fn-traced [{:keys [db]} [_ response]]
+            {:db (-> db
+                     (assoc-in [:secrets :visibility :loading?] false)
+                     (assoc-in [:secrets :result :success] false)
+                     (assoc-in [:secrets :result :response :body] (keywordize-keys (:response response)))
+                     (assoc-in [:secrets :result :response :status] (:status response)))
+             :dispatch [::events/display-response-errors response]}))
 
 (rf/reg-event-fx
  ::create-secret-ok
@@ -92,14 +95,15 @@
               {:db (assoc-in db [:secrets :visibility :detail-loading?] true)
                :http-xhrio (api/secret-detail id headers [::get-secret-detail-ok] [::get-secret-detail-not-ok])})))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  ::get-secret-detail-not-ok
- (fn-traced [db [_ response]]
-            (-> db
-                (assoc-in [:secrets :visibility :detail-loading?] false)
-                (assoc-in [:secrets :result :success] false)
-                (assoc-in [:secrets :result :response :body] (keywordize-keys (:response response)))
-                (assoc-in [:secrets :result :response :status] (:status response)))))
+ (fn-traced [{:keys [db]} [_ response]]
+            {:db (-> db
+                     (assoc-in [:secrets :visibility :detail-loading?] false)
+                     (assoc-in [:secrets :result :success] false)
+                     (assoc-in [:secrets :result :response :body] (keywordize-keys (:response response)))
+                     (assoc-in [:secrets :result :response :status] (:status response)))
+             :dispatch [::events/display-response-errors response]}))
 
 (rf/reg-event-db
  ::get-secret-detail-ok
@@ -123,14 +127,15 @@
               {:db db
                :http-xhrio (api/secret-update id headers params [::edit-secret-ok list-params] [::edit-secret-not-ok])})))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  ::edit-secret-not-ok
- (fn-traced [db [_ response]]
-            (-> db
-                (assoc-in [:secrets :visibility :loading?] false)
-                (assoc-in [:secrets :result :success] false)
-                (assoc-in [:secrets :result :response :body] (keywordize-keys (:response response)))
-                (assoc-in [:secrets :result :response :status] (:status response)))))
+ (fn-traced [{:keys [db]} [_ response]]
+            {:db (-> db
+                     (assoc-in [:secrets :visibility :loading?] false)
+                     (assoc-in [:secrets :result :success] false)
+                     (assoc-in [:secrets :result :response :body] (keywordize-keys (:response response)))
+                     (assoc-in [:secrets :result :response :status] (:status response)))
+             :dispatch [::events/display-response-errors response]}))
 
 (rf/reg-event-fx
  ::edit-secret-ok
@@ -155,14 +160,15 @@
                        (assoc-in [:secrets :detail] nil))
                :http-xhrio (api/secret-delete id headers [::delete-secret-ok list-params] [::delete-secret-not-ok])})))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  ::delete-secret-not-ok
- (fn-traced [db [_ response]]
-            (-> db
-                (assoc-in [:secrets :visibility :loading?] false)
-                (assoc-in [:secrets :result :success] false)
-                (assoc-in [:secrets :result :response :body] (keywordize-keys (:response response)))
-                (assoc-in [:secrets :result :response :status] (:status response)))))
+ (fn-traced [{:keys [db]} [_ response]]
+            {:db (-> db
+                     (assoc-in [:secrets :visibility :loading?] false)
+                     (assoc-in [:secrets :result :success] false)
+                     (assoc-in [:secrets :result :response :body] (keywordize-keys (:response response)))
+                     (assoc-in [:secrets :result :response :status] (:status response)))
+             :dispatch [::events/display-response-errors response]}))
 
 (rf/reg-event-fx
  ::delete-secret-ok

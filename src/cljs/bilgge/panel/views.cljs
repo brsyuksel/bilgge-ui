@@ -13,12 +13,6 @@
             [bilgge.secrets.events :as secevs]
             [bilgge.secrets.subs :as secsubs]))
 
-(defn error-message
-  [msg]
-  (bulma-toast/toast #js {:message msg
-                          :type "is-warning"
-                          :pauseOnHover true}))
-
 (def new-collection-name (r/atom ""))
 (defn create-new-collection-modal-body
   [help-text]
@@ -41,7 +35,7 @@
                                 enc-iv (utils/encrypt-rsa-string-key public-key iv)
                                 params {:name enc-name :_iv enc-iv}]
                             (if (string/blank? @new-collection-name)
-                              (error-message "Collection name cannot be empty.")
+                              (re-frame/dispatch [::events/display-warning-message "Collection name cannot be empty."])
                               (do
                                 (re-frame/dispatch-sync [::collevs/create-collection params])
                                 (re-frame/dispatch-sync [::collevs/display-new-collection-modal false])
@@ -65,7 +59,8 @@
   (let [params {:collection_id @selected-collection
                 :offset @offset
                 :limit @limit}]
-    (re-frame/dispatch [::secevs/get-secrets params])))
+    (if @selected-collection
+        (re-frame/dispatch [::secevs/get-secrets params]))))
 
 (defn collection-selector
   []
@@ -141,7 +136,7 @@
                 :_iv enc-iv
                 :hashes hashes}]
     (if (or (string/blank? @secret-note-title) (string/blank? @secret-note-content))
-      (error-message "Title and content cannot be empty.")
+      (re-frame/dispatch [::events/display-warning-message "Title and content cannot be empty."])
       (do
         (if-not editing?
           (re-frame/dispatch [::secevs/create-secret params])

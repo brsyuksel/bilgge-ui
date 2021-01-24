@@ -1,14 +1,40 @@
 (ns bilgge.events
-  (:require
-   [re-frame.core :as re-frame]
-   [reitit.frontend.easy :as rfe]
-   [bilgge.db :as db]
-   [day8.re-frame.tracing :refer-macros [fn-traced]]))
+  (:require [clojure.walk :refer [keywordize-keys]]
+            [clojure.string :refer [join]]
+            [re-frame.core :as re-frame]
+            [reitit.frontend.easy :as rfe]
+            ["bulma-toast" :as bulma-toast]
+            [bilgge.db :as db]
+            [day8.re-frame.tracing :refer-macros [fn-traced]]))
 
 (re-frame/reg-event-db
  ::initialize-db
  (fn-traced [_ _]
             db/default-db))
+
+(re-frame/reg-event-db
+  ::display-warning-message
+  (fn-traced [db [_ message]]
+             (bulma-toast/toast #js {:message message
+                                     :type "is-warning"
+                                     :pauseOnHover true})))
+
+(re-frame/reg-event-db
+  ::display-danger-message
+  (fn-traced [_ [_ message]]
+             (bulma-toast/toast #js {:message message
+                                     :type "is-danger"
+                                     :pauseOnHover true})))
+
+(re-frame/reg-event-fx
+  ::display-response-errors
+  (fn-traced [_ [_ response]]
+             (let [_ (println response)
+                   status (:status response)
+                   body (keywordize-keys (:response response))
+                   fx (if (= status 403) ::display-danger-message ::display-warning-message)
+                   msg (if (= status 403) "Authentication error. Try to log out and then log in again." (join "," (:messages body)))]
+                  (if msg {:dispatch [fx msg]}))))
 
 (re-frame/reg-event-db
  ::set-route-name
