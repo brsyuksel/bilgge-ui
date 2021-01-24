@@ -29,11 +29,16 @@
 (re-frame/reg-event-fx
   ::display-response-errors
   (fn-traced [_ [_ response]]
-             (let [_ (println response)
-                   status (:status response)
+             (let [status (:status response)
                    body (keywordize-keys (:response response))
-                   fx (if (= status 403) ::display-danger-message ::display-warning-message)
-                   msg (if (= status 403) "Authentication error. Try to log out and then log in again." (join "," (:messages body)))]
+                   fx (case status
+                            403 ::display-danger-message
+                            500 ::display-danger-message
+                            ::display-warning-message)
+                   msg (case status
+                             403 "Authentication error. Try to log out and then log in again."
+                             500 "Internal error."
+                             (join "," (:messages body)))]
                   (if msg {:dispatch [fx msg]}))))
 
 (re-frame/reg-event-db
