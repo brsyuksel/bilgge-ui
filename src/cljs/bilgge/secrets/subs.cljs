@@ -37,6 +37,12 @@
       (-> secrets :selected-id)))
 
 (rf/reg-sub
+  ::selected-type
+  :<- [::secrets]
+  (fn [secrets _]
+      (:selected-secret-type secrets)))
+
+(rf/reg-sub
   ::result
   :<- [::secrets]
   (fn [secrets [_ k]]

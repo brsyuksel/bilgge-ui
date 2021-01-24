@@ -74,8 +74,9 @@
   (fn-traced [{:keys [db]} [_ params _]]
              {:db (-> db
                       (assoc-in [:secrets :result :success] true)
-                      (assoc-in [:secrets :visibility :display-editor?] false)
+                      (assoc-in [:secrets :visibility :display-editor?] nil)
                       (assoc-in [:secrets :selected-id] nil)
+                      (assoc-in [:secrets :selected-secret-type] nil)
                       (assoc-in [:secrets :detail] nil))
               :dispatch [::get-secrets params]}))
 
@@ -132,8 +133,9 @@
   (fn-traced [{:keys [db]} [_ params _]]
              {:db (-> db
                       (assoc-in [:secrets :result :success] true)
-                      (assoc-in [:secrets :visibility :display-editor?] false)
+                      (assoc-in [:secrets :visibility :display-editor?] nil)
                       (assoc-in [:secrets :selected-id] nil)
+                      (assoc-in [:secrets :selected-secret-type] nil)
                       (assoc-in [:secrets :detail] nil))
               :dispatch [::get-secrets params]}))
 
@@ -145,6 +147,7 @@
                    list-params {:offset "0" :limit "10" :collection_id collection-id}]
                {:db (-> db
                         (assoc-in [:secrets :selected-id] nil)
+                        (assoc-in [:secrets :selected-secret-type] nil)
                         (assoc-in [:secrets :detail] nil))
                 :http-xhrio (api/secret-delete id headers [::delete-secret-ok list-params] [::delete-secret-not-ok])})))
 
@@ -177,3 +180,8 @@
   ::select-secret
   (fn-traced [db [_ id]]
              (assoc-in db [:secrets :selected-id] id)))
+
+(rf/reg-event-db
+  ::set-selected-secret-type
+  (fn-traced [db [_ type]]
+             (assoc-in db [:secrets :selected-secret-type] type)))
