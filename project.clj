@@ -99,7 +99,9 @@
                             ["shell" "node" "target/pack.js" "server"]]
             "pact-publish" ["with-profile" "script" "do"
                             ["shadow" "compile" "pact"]
-                            ["shell" "node" "target/pack.js" "publish"]]}
+                            ["shell" "node" "target/pack.js" "publish"]]
+            "ci-compile"   ["with-profile" "dev" "do"
+                            ["shadow" "compile" "app" "karma-test" "pact"]]}
 
   :profiles
   {:dev
