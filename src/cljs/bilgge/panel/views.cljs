@@ -97,16 +97,19 @@
 (def secret-note-content (r/atom ""))
 (defn send-note-form
       []
-      (let [editing? @(re-frame/subscribe [::secsubs/visibility :editing?])
+      (let [display-editor? @(re-frame/subscribe [::secsubs/visibility :display-editor?])
+            plain-type (if (= display-editor? :note) "note" "inputs")
+            editing? @(re-frame/subscribe [::secsubs/visibility :editing?])
             selected-id @(re-frame/subscribe [::secsubs/selected-id])
             pub-key @(re-frame/subscribe [::subs/public-key])
             plain-key @(re-frame/subscribe [::subs/plain-key])
             hash-salt @(re-frame/subscribe [::subs/plain-salt])
             plain-iv (utils/random-string 16)
             enc-iv (utils/encrypt-rsa-string-key pub-key plain-iv)
-            enc-type (utils/aes-encrypt plain-key plain-iv "note")
+            enc-type (utils/aes-encrypt plain-key plain-iv plain-type)
             enc-title (utils/aes-encrypt plain-key plain-iv @secret-note-title)
-            enc-body (utils/aes-encrypt plain-key plain-iv @secret-note-content)
+            plain-content (if (= plain-type "note") @secret-note-content (->> @secret-note-content clj->js (.stringify js/JSON)))
+            enc-body (utils/aes-encrypt plain-key plain-iv plain-content)
             hashes (->> (string/split @secret-note-title #"\s")
                         (map #(str % hash-salt))
                         (map utils/sha256))
@@ -124,13 +127,15 @@
 (defn content-actions
       []
       (let [display-editor? (re-frame/subscribe [::secsubs/visibility :display-editor?])
-            selected-id (re-frame/subscribe [::secsubs/selected-id])]
+            selected-id (re-frame/subscribe [::secsubs/selected-id])
+            selected-type (re-frame/subscribe [::secsubs/selected-type])
+            editor-type (if (= @selected-type "note") :note :inputs)]
            (cond
              @display-editor? [:<>
                                [:button.button.is-outlined {:on-click #(do
                                                                          (reset! secret-note-title "")
                                                                          (reset! secret-note-content "")
-                                                                         (re-frame/dispatch [::secevs/display-editor false])
+                                                                         (re-frame/dispatch [::secevs/display-editor nil])
                                                                          (re-frame/dispatch [::secevs/editing? false]))} "discard"]
                                [:button.button.is-primary {:on-click #(do
                                                                         (send-note-form))} "save."]]
@@ -139,7 +144,7 @@
                             [:span.icon.is-large [:i.fas.fa-trash]]]
                            [:button.button.is-light {:on-click #(do
                                                                   (re-frame/dispatch [::secevs/editing? true])
-                                                                  (re-frame/dispatch [::secevs/display-editor true]))}
+                                                                  (re-frame/dispatch [::secevs/display-editor editor-type]))}
                             [:span.icon.is-large [:i.fas.fa-pen]]]])))
 
 (defn content-header
@@ -177,6 +182,7 @@
       [:div {:class ["column" "is-clickable" "is-full" "listing-item" (when active? "active")]
              :on-click #(do
                           (re-frame/dispatch [::secevs/select-secret id])
+                          (re-frame/dispatch [::secevs/set-selected-secret-type type])
                           (re-frame/dispatch [::secevs/get-secret-detail id]))}
        [:div.columns
         [:div.column.is-one-fifth.is-flex.is-flex-direction-row.is-align-items-center.is-justify-content-center.has-text-grey
@@ -257,24 +263,80 @@
             :placeholder "Note down your secrets here.",
             :toolbar "editor-toolbar"}]]]]])
 
+(defn key-value-form
+      []
+      (let [on-change-fn (fn [id prop]
+                             (let [data (map-indexed vector @secret-note-content)
+                                   ind (-> (filterv #(-> % second :id (= id)) data)
+                                           first
+                                           first)]
+                                  (fn [e]
+                                      (swap! secret-note-content assoc-in [ind prop] (-> e .-target .-value)))))]
+           [:div.column
+            [:div.content.p-3
+             [:div.columns
+              [:div.column
+               [:div.field
+                [:div.control
+                 [inputs/large-input-with-placeholder-white-bis secret-note-title "Title" nil]]]]]
+             [:div#key-value
+              (for [inp @secret-note-content]
+                   ^{:key (:id inp)}
+                   [:div.columns
+                    [:div.column.is-half.is-offset-one-quarter
+                     [inputs/medium-input-with-placeholder "Label" (:key inp) (on-change-fn (:id inp) :key)]
+                     [inputs/medium-input-with-placeholder "Value" (:value inp) (on-change-fn (:id inp) :value)]]
+                    [:div.column.is-one-quarter.is-flex.is-justify-content-center.is-align-items-center
+                     [:button.button {:on-click #(swap! secret-note-content (fn [coll] (filterv (fn [e] (not (= (:id inp) (:id e)))) coll)))}
+                      [:span.icon.is-large [:i.fas.fa-times]]]]])]
+             [:div.columns
+              [:div.column.is-flex.is-justify-content-center.is-align-items-center
+               [:button.button.is-large {:on-click #(swap! secret-note-content conj {:id (str (random-uuid)) :key "" :value ""})}
+                [:span.icon.is-large [:i.fas.fa-plus]]]]]]]))
+
+(defn editor
+      [type]
+      (case type
+            :note [note-form]
+            :inputs [key-value-form]
+            [note-form]))
+
+(defn display-note-content
+      [content]
+      [:div.columns
+       [:div.column {:dangerouslySetInnerHTML {:__html content}}]])
+
+(defn display-inputs-content
+      [content]
+      [:<>
+       (for [data content]
+           ^{:key (:id data)}
+           [:div.columns
+            [:div.column.is-half.is-offset-one-quarter
+             [inputs/medium-secret-input-with-clipboard (:id data) (:key data) (:value data)]]])])
+
 (defn secret-content
       []
       (if-let [detail @(re-frame/subscribe [::secsubs/detail])]
               (let [priv-key @(re-frame/subscribe [::subs/private-key])
                     plain-key @(re-frame/subscribe [::subs/plain-key])
                     plain-iv (utils/decrypt-rsa-string-key priv-key (:_iv detail))
+                    plain-type (utils/aes-decrypt plain-key plain-iv (:type detail))
                     plain-title (utils/aes-decrypt plain-key plain-iv (:title detail))
                     plain-content (utils/aes-decrypt plain-key plain-iv (:content detail))
                     _ (reset! secret-note-title plain-title)
-                    _ (reset! secret-note-content plain-content)]
+                    _ (reset! secret-note-content (if (= plain-type "note")
+                                                      plain-content
+                                                      (-> (.parse js/JSON plain-content) (js->clj :keywordize-keys true))))]
                    [:div.column
                     [:div.content.p-3
                      [:div.columns.content-title
                       [:div.column
                        [:h2 plain-title]
                        [:div.divider.is-right (str "Last Update at " (:updated_at detail))]]]
-                     [:div.columns
-                      [:div.column {:dangerouslySetInnerHTML {:__html plain-content}}]]]])
+                     (if (= plain-type "note")
+                         [display-note-content plain-content]
+                         [display-inputs-content (-> (.parse js/JSON plain-content) (js->clj :keywordize-keys true))])]])
               [:h3 "EMPTY SCREEN"]))
 
 (defn content-wrapper
@@ -291,7 +353,7 @@
             [create-new-collection-modal new-coll-msg display? cancelable?]
             [side-bar]
             (if @display-editor?
-                [note-form]
+                [editor @display-editor?]
                 [secret-content])]))
 
 (defn panel-view
