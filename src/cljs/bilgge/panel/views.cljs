@@ -387,7 +387,9 @@
         new-coll-msg (if (= 0 (count @collections))
                        "You need to have one collection at least in order to use bilgge."
                        "Collection names are encrypted, too!")
-        display? (or (= 0 (count @collections)) @display-modal?)
+        display? (or (and (some? @collections)
+                          (= 0 (count @collections)))
+                     @display-modal?)
         cancelable? (> (count @collections) 0)]
     [:div.columns
      [create-new-collection-modal new-coll-msg display? cancelable?]
@@ -407,6 +409,7 @@
                                                                                               note-plain (.-value note-input)]
                                                                                           (reset! secret-note-content note-plain)))))
                    :render (fn []
-                             [:<>
-                              [content-header]
-                              [content-wrapper]])}))
+                             (if-let [_ @(re-frame/subscribe [::collsubs/visibility :loaded?])]
+                                     [:<>
+                                      [content-header]
+                                      [content-wrapper]]))}))

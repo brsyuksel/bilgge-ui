@@ -14,14 +14,14 @@
  (fn-traced [{:keys [db]} _]
             (let [token (-> db :token)
                   headers {"Authorization" (str "Bearer " token)}]
-              {:db (assoc-in db [:collections :visibility :loading?] true)
+              {:db (assoc-in db [:collections :visibility :loaded?] false)
                :http-xhrio (api/collections-list headers nil [::get-collections-ok] [::get-collections-not-ok])})))
 
 (rf/reg-event-db
  ::get-collections-not-ok
  (fn-traced [db [_ response]]
             (-> db
-                (assoc-in [:collections :visibility :loading?] false)
+                (assoc-in [:collections :visibility :loaded?] true)
                 (assoc-in [:collections :result :success] false)
                 (assoc-in [:collections :result :response :body] (keywordize-keys (:response response)))
                 (assoc-in [:collections :result :response :status] (:status response)))))
@@ -36,7 +36,7 @@
                   data (:data body)
                   data (map decrypt data)]
               (-> db
-                  (assoc-in [:collections :visibility :loading?] false)
+                  (assoc-in [:collections :visibility :loaded?] true)
                   (assoc-in [:collections :result :success] true)
                   (assoc-in [:collections :data] data)))))
 
