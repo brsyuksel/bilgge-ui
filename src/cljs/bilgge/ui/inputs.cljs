@@ -21,6 +21,34 @@
        (when help-text
              [:p.help help-text])])
 
+(defn medium-input-with-placeholder
+      [placeholder value on-change]
+      [:div.field
+       [:div.control
+        [:input.input.is-medium.has-background-white-ter {:type "text"
+                                                          :defaultValue value
+                                                          :on-change on-change
+                                                          :placeholder placeholder}]]])
+
+(defn medium-secret-input-with-clipboard
+      [id label value]
+      [:<>
+       [:div.field
+        [:label.label.is-large label]]
+       [:div.field.has-addons.inputs-value
+       [:div.control.is-expanded
+        [:input.input.is-medium.has-background-white-ter {:id (str "inp-" id)
+                                                          :type "password"
+                                                          :defaultValue value
+                                                          :readOnly true}]]
+       [:div.control
+        [:a.button.is-medium.has-background-white-ter {:on-click #(let [inputs-val (.getElementById js/document (str "inp-" id))]
+                                                                       (set! (.-type inputs-val) "text")
+                                                                       (.select inputs-val)
+                                                                       (.execCommand js/document "copy")
+                                                                       (set! (.-type inputs-val) "password"))}
+         [:i.fas.fa-clipboard]]]]])
+
 (defn large-input-with-placeholder-white-bis
       [value-atom placeholder help-text]
       [:div.field
