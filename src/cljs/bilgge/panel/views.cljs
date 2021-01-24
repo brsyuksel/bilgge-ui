@@ -2,6 +2,7 @@
     (:require [clojure.string :as string]
               [reagent.core :as r]
               [re-frame.core :as re-frame]
+              ["bulma-toast" :as bulma-toast]
               [bilgge.ui.modals :as modals]
               [bilgge.ui.inputs :as inputs]
               [bilgge.events :as events]
@@ -12,6 +13,12 @@
               [bilgge.secrets.events :as secevs]
               [bilgge.secrets.subs :as secsubs]))
 
+(defn error-message
+      [msg]
+      (bulma-toast/toast #js {:message msg
+                              :type "is-warning"
+                              :pauseOnHover true}))
+
 (def new-collection-name (r/atom ""))
 (defn create-new-collection-modal-body
       [help-text]
@@ -20,7 +27,6 @@
         [:div.column
          [inputs/large-input-with-placeholder new-collection-name "Collection Name" help-text]]]])
 
-;; TODO: new collection name trim and length check.
 (defn create-new-collection-modal-footer
       []
       (let [creating? @(re-frame/subscribe [::collsubs/visibility :creating?])
@@ -29,13 +35,17 @@
            [:button {:disabled creating?
                      :class ["button" "is-primary" (when creating? "is-loading")]
                      :on-click (fn []
-                                   (let [iv (utils/random-string 16)
+                                   (let [_ (swap! new-collection-name string/trim)
+                                         iv (utils/random-string 16)
                                          enc-name (utils/aes-encrypt plain-key iv @new-collection-name)
                                          enc-iv (utils/encrypt-rsa-string-key public-key iv)
                                          params {:name enc-name :_iv enc-iv}]
-                                        (re-frame/dispatch-sync [::collevs/create-collection params])
-                                        (re-frame/dispatch-sync [::collevs/display-new-collection-modal false])
-                                        (reset! new-collection-name "")))}
+                                        (if (string/blank? @new-collection-name)
+                                            (error-message "Collection name cannot be empty.")
+                                            (do
+                                              (re-frame/dispatch-sync [::collevs/create-collection params])
+                                              (re-frame/dispatch-sync [::collevs/display-new-collection-modal false])
+                                              (reset! new-collection-name "")))))}
             "save."]))
 
 (defn create-new-collection-modal
