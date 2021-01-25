@@ -28,7 +28,7 @@
 (def valid-user-id "75ab36d3-3552-407b-b64b-0c56424fc479")
 (def valid-plain "0123456789abcdef0123456789abcdef")
 (def jwt-ci-secret "jwt-ci-secret")
-(def valid-token (.sign jwt (clj->js {:username valid-user :user_id valid-user-id}) jwt-ci-secret (clj->js {:expiresIn "6h"})))
+(def valid-token (.sign jwt (clj->js {:username valid-user :user_id valid-user-id}) jwt-ci-secret (clj->js {:expiresIn "10y"})))
 (def bearer (str "Bearer " valid-token))
 (def valid-bearer (term "Bearer\\s[a-zA-Z0-9._-]{1,}$" bearer))
 (def login-cipher "JoVq5oVBVxB2k/kdFsxoowLidnOwm4gJwSMijAMKKUKW/f1Gec5OA/YogjQSmoJOYP+GcPAb4IpKZIsFvrrrchbKdCY8lu4tE9iG2TKxeXTx0nnFBKsP5W9w5RXyqUXTHpTu51W8IG+LoItxmi3zvWbEeuQY+AcO8vAorP47KJ8=")
