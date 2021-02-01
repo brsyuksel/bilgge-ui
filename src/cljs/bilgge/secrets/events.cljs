@@ -7,21 +7,10 @@
             [bilgge.api :as api]
             [bilgge.events :as events]))
 
-(defn decrypt-secret-info
-  [{:keys [type title _iv] :as s} private-key aes-key]
-  (-> s
-      (assoc :plain-type "")
-      (assoc :plain-title "")))
-
-(defn decrypt-secret
-  [{:keys [type title content _iv] :as s} private-key aes-key]
-  (-> (decrypt-secret-info s private-key aes-key)
-      (assoc :plain-content "")))
-
 (rf/reg-event-fx
  ::get-secrets
  (fn-traced [{:keys [db]} [_ params]]
-            (let [token (-> db :token)
+            (let [token (:token db)
                   headers {"Authorization" (str "Bearer " token)}
                   hashes (-> db :secrets :search-hashes)
                   q (if hashes (string/join "," hashes) "")
@@ -46,11 +35,7 @@
  ::get-secrets-ok
  (fn-traced [db [_ response]]
             (let [body (keywordize-keys response)
-                  priv-key (:private-key db)
-                  aes-key (:key db)
-                  decrypt #(decrypt-secret-info % priv-key aes-key)
-                  data (:data body)
-                  data (map decrypt data)]
+                  data (:data body)]
               (-> db
                   (assoc-in [:secrets :visibility :loading?] false)
                   (assoc-in [:secrets :visibility :list-loading?] false)
@@ -60,7 +45,7 @@
 (rf/reg-event-fx
  ::create-secret
  (fn-traced [{:keys [db]} [_ params]]
-            (let [token (-> db :token)
+            (let [token (:token db)
                   headers {"Authorization" (str "Bearer " token)}
                   list-params (-> params (select-keys [:collection_id]) (merge {:offset "0" :limit "10"}))]
               {:db db
@@ -90,7 +75,7 @@
 (rf/reg-event-fx
  ::get-secret-detail
  (fn-traced [{:keys [db]} [_ id]]
-            (let [token (-> db :token)
+            (let [token (:token db)
                   headers {"Authorization" (str "Bearer " token)}]
               {:db (assoc-in db [:secrets :visibility :detail-loading?] true)
                :http-xhrio (api/secret-detail id headers [::get-secret-detail-ok] [::get-secret-detail-not-ok])})))
@@ -108,20 +93,16 @@
 (rf/reg-event-db
  ::get-secret-detail-ok
  (fn-traced [db [_ response]]
-            (let [body (keywordize-keys response)
-                  priv-key (:private-key db)
-                  aes-key (:key db)
-                  data (decrypt-secret body priv-key aes-key)]
+            (let [body (keywordize-keys response)]
               (-> db
                   (assoc-in [:secrets :visibility :detail-loading?] false)
                   (assoc-in [:secrets :result :success] true)
-                  (assoc-in [:secrets :plain] data)
-                  (assoc-in [:secrets :detail] data)))))
+                  (assoc-in [:secrets :detail] body)))))
 
 (rf/reg-event-fx
  ::edit-secret
  (fn-traced [{:keys [db]} [_ collection-id id params]]
-            (let [token (-> db :token)
+            (let [token (:token db)
                   headers {"Authorization" (str "Bearer " token)}
                   list-params {:offset "0" :limit "10" :collection_id collection-id}]
               {:db db
@@ -151,7 +132,7 @@
 (rf/reg-event-fx
  ::delete-secret
  (fn-traced [{:keys [db]} [_ collection-id id]]
-            (let [token (-> db :token)
+            (let [token (:token db)
                   headers {"Authorization" (str "Bearer " token)}
                   list-params {:offset "0" :limit "10" :collection_id collection-id}]
               {:db (-> db

@@ -16,25 +16,25 @@
  ::data
  :<- [::secrets]
  (fn [secrets _]
-   (-> secrets :data)))
+   (:data secrets)))
 
 (rf/reg-sub
  ::plain
  :<- [::secrets]
  (fn [secrets _]
-   (-> secrets :plain)))
+   (:plain secrets)))
 
 (rf/reg-sub
  ::detail
  :<- [::secrets]
  (fn [secrets _]
-   (-> secrets :detail)))
+   (:detail secrets)))
 
 (rf/reg-sub
  ::selected-id
  :<- [::secrets]
  (fn [secrets _]
-   (-> secrets :selected-id)))
+   (:selected-id secrets)))
 
 (rf/reg-sub
  ::selected-type

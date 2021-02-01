@@ -1,6 +1,4 @@
-(ns bilgge.ui.modals
-  (:require [re-frame.core :as re-frame]
-            [bilgge.collections.events :as collevs]))
+(ns bilgge.ui.modals)
 
 (defn modal-card
   [title content footer active? cancelable? on-close]

@@ -42,9 +42,7 @@
      (rf/dispatch [::s-e/get-secrets params])
      (rf-test/wait-for [::s-e/get-secrets-ok]
                        (is (true? @success?))
-                       (is (= "encrypted-type-1" (-> @data first :type)))
-                       (is (true? (every? #(some? %) (map :plain-title @data))))
-                       (is (true? (every? #(some? %) (map :plain-type @data))))))))
+                       (is (= "encrypted-type-1" (-> @data first :type)))))))
 
 (deftest secret-create-validation-error
   (rf-test/run-test-async
@@ -113,14 +111,11 @@
                                             :key "k"}])
 
    (let [success? (rf/subscribe [::s-s/success?])
-         plain (rf/subscribe [::s-s/plain])
          id "2b08c749-a996-44b6-9d12-9398b3789861"]
 
      (rf/dispatch [::s-e/get-secret-detail id])
      (rf-test/wait-for [::s-e/get-secret-detail-ok]
-                       (is (true? @success?))
-                       (is (= "new-enc-content" (:content @plain)))
-                       (is (some? (:plain-content @plain)))))))
+                       (is (true? @success?))))))
 
 (deftest secret-edit-not-found-error
   (rf-test/run-test-async

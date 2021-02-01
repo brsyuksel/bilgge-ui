@@ -1,5 +1,4 @@
-(ns bilgge.ui.inputs
-  (:require [reagent.core :as r]))
+(ns bilgge.ui.inputs)
 
 (defn labeled-large-input
   [value-atom label help-text]
@@ -71,10 +70,9 @@
                          :on-change #(let [file (-> % .-target .-files first)
                                            reader (js/FileReader.)
                                            _ (set! (.-onload reader) (fn [] (reset! value-atom (.-result reader))))]
-                                       (if file
-                                         (do
-                                           (.readAsText reader file)
-                                           (reset! fname-atom (.-name file)))))}]
+                                       (when file
+                                         (.readAsText reader file)
+                                         (reset! fname-atom (.-name file))))}]
      [:span.file-cta
       [:span.file-icon [:i.fas.fa-upload]]
       [:span.file-label label]]

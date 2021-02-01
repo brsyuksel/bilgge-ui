@@ -27,16 +27,14 @@
 (defn decrypt-rsa-string-key
   [priv-key cipher-text]
   (let [enc (jse/JSEncrypt.)]
-    (do
-      (.setPrivateKey enc priv-key)
-      (decrypt-rsa enc cipher-text))))
+    (.setPrivateKey enc priv-key)
+    (decrypt-rsa enc cipher-text)))
 
 (defn encrypt-rsa-string-key
   [pub-key plain-text]
   (let [enc (jse/JSEncrypt.)]
-    (do
-      (.setPublicKey enc pub-key)
-      (encrypt-rsa enc plain-text))))
+    (.setPublicKey enc pub-key)
+    (encrypt-rsa enc plain-text)))
 
 (defn generate-rsa-pairs
   []

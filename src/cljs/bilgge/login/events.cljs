@@ -36,7 +36,7 @@
  (fn-traced [{:keys [db]} [_ params response]]
             (let [body (keywordize-keys response)
                   priv-key (:private-key db)
-                  cipher (-> body :cipher)
+                  cipher (:cipher body)
                   plain (decrypt-login-cipher priv-key cipher)
                   params (merge params {:plain plain})]
               (if-not plain

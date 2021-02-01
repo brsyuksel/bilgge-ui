@@ -16,7 +16,7 @@
  ::data
  :<- [::collections]
  (fn [collections _]
-   (-> collections :data)))
+   (:data collections)))
 
 (rf/reg-sub
  ::result

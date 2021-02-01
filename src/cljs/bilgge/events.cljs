@@ -13,33 +13,33 @@
             db/default-db))
 
 (re-frame/reg-event-db
-  ::display-warning-message
-  (fn-traced [db [_ message]]
-             (bulma-toast/toast #js {:message message
-                                     :type "is-warning"
-                                     :pauseOnHover true})))
+ ::display-warning-message
+ (fn-traced [_ [_ message]]
+            (bulma-toast/toast #js {:message message
+                                    :type "is-warning"
+                                    :pauseOnHover true})))
 
 (re-frame/reg-event-db
-  ::display-danger-message
-  (fn-traced [_ [_ message]]
-             (bulma-toast/toast #js {:message message
-                                     :type "is-danger"
-                                     :pauseOnHover true})))
+ ::display-danger-message
+ (fn-traced [_ [_ message]]
+            (bulma-toast/toast #js {:message message
+                                    :type "is-danger"
+                                    :pauseOnHover true})))
 
 (re-frame/reg-event-fx
-  ::display-response-errors
-  (fn-traced [_ [_ response]]
-             (let [status (:status response)
-                   body (keywordize-keys (:response response))
-                   fx (case status
-                            403 ::display-danger-message
-                            500 ::display-danger-message
-                            ::display-warning-message)
-                   msg (case status
-                             403 "Authentication error. Try to log out and then log in again."
-                             500 "Internal error."
-                             (join "," (:messages body)))]
-                  (if msg {:dispatch [fx msg]}))))
+ ::display-response-errors
+ (fn-traced [_ [_ response]]
+            (let [status (:status response)
+                  body (keywordize-keys (:response response))
+                  fx (case status
+                       403 ::display-danger-message
+                       500 ::display-danger-message
+                       ::display-warning-message)
+                  msg (case status
+                        403 "Authentication error. Try to log out and then log in again."
+                        500 "Internal error."
+                        (join "," (:messages body)))]
+              (when msg {:dispatch [fx msg]}))))
 
 (re-frame/reg-event-db
  ::set-route-name

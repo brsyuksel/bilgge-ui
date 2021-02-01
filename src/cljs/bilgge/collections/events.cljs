@@ -6,14 +6,10 @@
             [bilgge.api :as api]
             [bilgge.events :as events]))
 
-(defn decrypt-collection-name
-  [{:keys [name _iv] :as d} private-key aes-key]
-  (assoc d :plain-name ""))
-
 (rf/reg-event-fx
  ::get-collections
  (fn-traced [{:keys [db]} _]
-            (let [token (-> db :token)
+            (let [token (:token db)
                   headers {"Authorization" (str "Bearer " token)}]
               {:db (assoc-in db [:collections :visibility :loaded?] false)
                :http-xhrio (api/collections-list headers nil [::get-collections-ok] [::get-collections-not-ok])})))
@@ -32,11 +28,7 @@
  ::get-collections-ok
  (fn-traced [db [_ response]]
             (let [body (keywordize-keys response)
-                  priv-key (:private-key db)
-                  aes-key (:key db)
-                  decrypt #(decrypt-collection-name % priv-key aes-key)
-                  data (:data body)
-                  data (map decrypt data)]
+                  data (:data body)]
               (-> db
                   (assoc-in [:collections :visibility :loaded?] true)
                   (assoc-in [:collections :result :success] true)
@@ -45,7 +37,7 @@
 (rf/reg-event-fx
  ::create-collection
  (fn-traced [{:keys [db]} [_ params]]
-            (let [token (-> db :token)
+            (let [token (:token db)
                   headers {"Authorization" (str "Bearer " token)}]
               {:db (assoc-in db [:collections :visibility :creating?] true)
                :http-xhrio (api/collections-create headers params [::create-collection-ok] [::create-collection-not-ok])})))
@@ -72,7 +64,7 @@
 (rf/reg-event-fx
  ::edit-collection
  (fn-traced [{:keys [db]} [_ id params]]
-            (let [token (-> db :token)
+            (let [token (:token db)
                   headers {"Authorization" (str "Bearer " token)}]
               {:db db
                :http-xhrio (api/collection-update id headers params [::edit-collection-ok] [::edit-collection-not-ok])})))
@@ -96,7 +88,7 @@
 (rf/reg-event-fx
  ::delete-collection
  (fn-traced [{:keys [db]} [_ id]]
-            (let [token (-> db :token)
+            (let [token (:token db)
                   headers {"Authorization" (str "Bearer " token)}]
               {:db db
                :http-xhrio (api/collection-delete id headers [::delete-collection-ok] [::delete-collection-not-ok])})))

@@ -2,7 +2,6 @@
   (:require [clojure.string :as string]
             [reagent.core :as r]
             [re-frame.core :as re-frame]
-            ["bulma-toast" :as bulma-toast]
             [bilgge.ui.modals :as modals]
             [bilgge.ui.inputs :as inputs]
             [bilgge.events :as events]
@@ -59,8 +58,8 @@
   (let [params {:collection_id @selected-collection
                 :offset @offset
                 :limit @limit}]
-    (if @selected-collection
-        (re-frame/dispatch [::secevs/get-secrets params]))))
+    (when @selected-collection
+      (re-frame/dispatch [::secevs/get-secrets params]))))
 
 (defn collection-selector
   []
@@ -72,9 +71,8 @@
                       (let [plain-iv (rsa-decrypt iv)]
                         (utils/aes-decrypt plain-key plain-iv name)))
         _ (when-not @selected-collection
-            (do
-              (reset! selected-collection (-> collections-raw first :id))
-              (get-collection-secrets)))]
+            (reset! selected-collection (-> collections-raw first :id))
+            (get-collection-secrets))]
     [:div.control.has-icons-left
      [:div.select.is-fullwidth
       [:select {:on-change #(do
@@ -220,15 +218,15 @@
         priv-key @(re-frame/subscribe [::subs/private-key])
         plain-key @(re-frame/subscribe [::subs/plain-key])
         rsa-decrypt #(utils/decrypt-rsa-string-key priv-key %)]
-    (if (> (count secrets) 0) [:div.columns.is-gapless.is-multiline
-                               (for [secret secrets]
-                                 (let [iv (:_iv secret)
-                                       plain-iv (rsa-decrypt iv)
-                                       s-type (utils/aes-decrypt plain-key plain-iv (:type secret))
-                                       title (utils/aes-decrypt plain-key plain-iv (:title secret))
-                                       created-at (:created_at secret)]
-                                   ^{:key (:id secret)}
-                                   [secret-item (:id secret) s-type title created-at (= selected-id (:id secret))]))]
+    (if (pos? (count secrets)) [:div.columns.is-gapless.is-multiline
+                                (for [secret secrets]
+                                  (let [iv (:_iv secret)
+                                        plain-iv (rsa-decrypt iv)
+                                        s-type (utils/aes-decrypt plain-key plain-iv (:type secret))
+                                        title (utils/aes-decrypt plain-key plain-iv (:title secret))
+                                        created-at (:created_at secret)]
+                                    ^{:key (:id secret)}
+                                    [secret-item (:id secret) s-type title created-at (= selected-id (:id secret))]))]
         [:div.column.is-full.listing-item
          [:div.columns
           [:div.column.is-flex.is-justify-content-center.has-text-grey
@@ -355,7 +353,7 @@
           _ (reset! secret-note-title plain-title)
           _ (reset! secret-note-content (if (= plain-type "note")
                                           plain-content
-                                          (-> (.parse js/JSON plain-content) (js->clj :keywordize-keys true))))]
+                                          (js->clj (.parse js/JSON plain-content) :keywordize-keys true)))]
       [:div.column
        [:div.content.p-3
         [:div.columns.content-title
@@ -364,7 +362,7 @@
           [:div.divider.is-right (str "Last Update at " (:updated_at detail))]]]
         (if (= plain-type "note")
           [display-note-content plain-content]
-          [display-inputs-content (-> (.parse js/JSON plain-content) (js->clj :keywordize-keys true))])]])
+          [display-inputs-content (js->clj (.parse js/JSON plain-content) :keywordize-keys true)])]])
     [:div.column
      [:div.content.p-3
       [:div.columns
@@ -379,13 +377,13 @@
   (let [collections (re-frame/subscribe [::collsubs/data])
         display-modal? (re-frame/subscribe [::collsubs/visibility :display-modal?])
         display-editor? (re-frame/subscribe [::secsubs/visibility :display-editor?])
-        new-coll-msg (if (= 0 (count @collections))
+        new-coll-msg (if (zero? (count @collections))
                        "You need to have one collection at least in order to use bilgge."
                        "Collection names are encrypted, too!")
         display? (or (and (some? @collections)
-                          (= 0 (count @collections)))
+                          (zero? (count @collections)))
                      @display-modal?)
-        cancelable? (> (count @collections) 0)]
+        cancelable? (pos? (count @collections))]
     [:div.columns
      [create-new-collection-modal new-coll-msg display? cancelable?]
      [side-bar]
