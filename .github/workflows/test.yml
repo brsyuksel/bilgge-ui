@@ -104,7 +104,7 @@ jobs:
           SECURITY_JWT_SECRET: jwt-ci-secret
         run: |
           docker pull us.gcr.io/bilgge/bilgge-api:latest
-          docker run --rm --network host -d us.gcr.io/bilgge/bilgge-api:latest
+          docker run --rm --network host -e DB_URI -e SECURITY_HASH_SECRET -e SECURITY_JWT_SECRET -d us.gcr.io/bilgge/bilgge-api:latest
 
       - name: pact provider verification
         env:
