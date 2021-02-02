@@ -1,0 +1,73 @@
+name: linter, karma tests and pact verification
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  linter-karma-pact-verification:
+    runs-on: ubuntu-20.04
+#    services:
+#      postgres:
+#        image: postgres:13.1-alpine
+#        ports:
+#          - 5432:5432
+#        env:
+#          POSTGRES_PASSWORD: postgres
+#        options: >-
+#          --health-cmd pg_isready
+#          --health-interval 10s
+#          --health-timeout 5s
+#          --health-retries 5
+    steps:
+      - name: setup-graalvm-ce
+        uses: rinx/setup-graalvm-ce@v0.0.5
+        with:
+          graalvm-version: "20.2.0"
+          java-version: "java8"
+          native-image: "false"
+
+      - name: install leiningen
+        run: |
+          sudo apt update
+          sudo apt -y install leiningen chromium-browser
+
+      - name: install nodejs
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: install clj-kondo
+        run: npm install -g clj-kondo
+
+      - name: checkout repo
+        uses: actions/checkout@v2
+
+      - name: cljfmt check
+        run: lein cljfmt check
+
+      - name: clj-kondo lint
+        run: clj-kondo --lint src
+
+      - name: ci-compile
+        env:
+          API_BASE_URL: http://localhost:9090
+        run: lein ci-compile
+
+      - name: run pact mock server
+        run: nohup node target/pack.js server > /dev/null 2>&1 &
+
+      - name: karma tests
+        env:
+          CHROME_BIN: chromium-browser
+        run: karma start --single-run --reporters dots,junit
+
+      - name: kill pact mock server
+        run: pkill -SIGINT node
+
+      - name: publish pact
+        env:
+          PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+          PACT_BROKER: ${{ secrets.PACT_BROKER }}
+          CONSUMER_VERSION: ${{ github.head_ref }}
+        run: node target/pack.js publish
