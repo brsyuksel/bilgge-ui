@@ -179,7 +179,7 @@
      [:div.columns
       [:div.column.is-4.is-offset-4
        [:div.field
-        [:button.button.is-large.is-light.is-fullwidth
+        [:button.button.is-large.is-light.is-fullwidth {:on-click #(open js/window "https://www.patreon.com/bilgge" "_blank")}
          [:span.icon.is-large [:i.fab.fa-patreon]]
          [:span "Patreon"]]]]]
      [:div.columns
