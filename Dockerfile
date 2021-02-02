@@ -14,6 +14,7 @@ COPY . .
 ARG api_url=https://api.bilgge.com
 ENV API_BASE_URL=$api_url
 RUN lein release
+RUN npm run css-build
 
 FROM nginx:1.19-alpine
 COPY --from=builder /source/resources/public /public
