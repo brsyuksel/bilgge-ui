@@ -5,20 +5,8 @@ on:
     branches: [ main ]
 
 jobs:
-  linter-karma-pact-verification:
+  linter-karma-pact-publish:
     runs-on: ubuntu-20.04
-#    services:
-#      postgres:
-#        image: postgres:13.1-alpine
-#        ports:
-#          - 5432:5432
-#        env:
-#          POSTGRES_PASSWORD: postgres
-#        options: >-
-#          --health-cmd pg_isready
-#          --health-interval 10s
-#          --health-timeout 5s
-#          --health-retries 5
     steps:
       - name: install leiningen and chromium
         run: |
@@ -64,3 +52,63 @@ jobs:
           PACT_BROKER: ${{ secrets.PACT_BROKER }}
           CONSUMER_VERSION: ${{ github.head_ref }}
         run: node target/pack.js publish
+
+  pact-provider-verification:
+    needs: linter-karma-pact-publish
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13.1-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: install postgresql-client-13
+        run:  |
+          sudo apt update
+          sudo apt -y install wget
+          wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+          echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" | sudo tee  /etc/apt/sources.list.d/pgdg.list
+          sudo apt update
+          sudo apt -y install postgresql-client-13
+
+      - name: pull pact-cli docker image
+        run: docker pull pactfoundation/pact-cli:latest
+
+      - name: initialize database
+        env:
+          PGPASSWORD: postgres
+        run: |
+          wget https://raw.githubusercontent.com/brsyuksel/bilgge-api/main/src/main/resources/db/init.sql
+          wget https://raw.githubusercontent.com/brsyuksel/bilgge-api/main/src/main/resources/db/ci.sql
+          psql -U postgres -h localhost -f init.sql
+          psql -U postgres -h localhost -f ci.sql
+
+      - name: docker login gcr
+        env:
+          GCLOUD_SERVICE_ACCOUNT_KEY: ${{ secrets.GC_GCR_SERVICE_KEY }}
+        run: |
+          echo ${GCLOUD_SERVICE_ACCOUNT_KEY} | base64 --decode > /tmp/key.json
+          cat /tmp/key.json | docker login -u _json_key --password-stdin https://us.gcr.io
+
+      - name: pull bilgge-api latest image and run in bg
+        env:
+          DB_URI: jdbc:postgresql://localhost:5432/postgres
+          SECURITY_HASH_SECRET: hash-ci-salt
+          SECURITY_JWT_SECRET: jwt-ci-secret
+        run: |
+          docker pull us.gcr.io/bilgge/bilgge-api:latest
+          docker run --rm --network host -d us.gcr.io/bilgge/bilgge-api:latest
+
+      - name: pact provider verification
+        env:
+          PACT_BROKER_BASE_URL: ${{ secrets.PACT_BROKER }}
+          PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+        run: |
+          docker run --rm --network host -e PACT_BROKER_BASE_URL -e PACT_BROKER_TOKEN -e PACT_BROKER_PUBLISH_VERIFICATION_RESULTS=true pactfoundation/pact-cli:latest verify --provider-base-url http://localhost:9092 --provider bilggeApi --provider-app-version latest
