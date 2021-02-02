@@ -20,14 +20,7 @@ jobs:
 #          --health-timeout 5s
 #          --health-retries 5
     steps:
-      - name: setup-graalvm-ce
-        uses: rinx/setup-graalvm-ce@v0.0.5
-        with:
-          graalvm-version: "20.2.0"
-          java-version: "java8"
-          native-image: "false"
-
-      - name: install leiningen
+      - name: install leiningen and chromium
         run: |
           sudo apt update
           sudo apt -y install leiningen chromium-browser
@@ -37,8 +30,8 @@ jobs:
         with:
           node-version: '14'
 
-      - name: install clj-kondo
-        run: npm install -g clj-kondo
+      - name: install clj-kondo and karma-cli
+        run: npm install -g clj-kondo karma-cli
 
       - name: checkout repo
         uses: actions/checkout@v2
