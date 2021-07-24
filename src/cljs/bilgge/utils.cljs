@@ -17,7 +17,7 @@
 
 (defn decrypt-rsa
   [enc cipher-text]
-  (if-let [plain (.decrypt enc cipher-text)]
+  (when-let [plain (.decrypt enc cipher-text)]
     plain))
 
 (defn encrypt-rsa

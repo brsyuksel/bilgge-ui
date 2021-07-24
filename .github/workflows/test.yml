@@ -90,12 +90,15 @@ jobs:
           psql -U postgres -h localhost -f init.sql
           psql -U postgres -h localhost -f ci.sql
 
-      - name: docker login gcr
-        env:
-          GCLOUD_SERVICE_ACCOUNT_KEY: ${{ secrets.GC_GCR_SERVICE_KEY }}
-        run: |
-          echo ${GCLOUD_SERVICE_ACCOUNT_KEY} | base64 --decode > /tmp/key.json
-          cat /tmp/key.json | docker login -u _json_key --password-stdin https://us.gcr.io
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+      - name: login to aws ecr
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
 
       - name: pull bilgge-api latest image and run in bg
         env:
@@ -103,8 +106,8 @@ jobs:
           SECURITY_HASH_SECRET: hash-ci-salt
           SECURITY_JWT_SECRET: jwt-ci-secret
         run: |
-          docker pull us.gcr.io/bilgge/bilgge-api:latest
-          docker run --rm --network host -e DB_URI -e SECURITY_HASH_SECRET -e SECURITY_JWT_SECRET -d us.gcr.io/bilgge/bilgge-api:latest
+          docker pull 488441450792.dkr.ecr.eu-central-1.amazonaws.com/bilgge-api:latest
+          docker run --rm --network host -e DB_URI -e SECURITY_HASH_SECRET -e SECURITY_JWT_SECRET -d 488441450792.dkr.ecr.eu-central-1.amazonaws.com/bilgge-api:latest
 
       - name: pact provider verification
         env:

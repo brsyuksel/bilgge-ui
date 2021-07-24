@@ -402,7 +402,7 @@
                                                                                               note-plain (.-value note-input)]
                                                                                           (reset! secret-note-content note-plain)))))
                    :render (fn []
-                             (if-let [_ @(re-frame/subscribe [::collsubs/visibility :loaded?])]
+                             (when-let [_ @(re-frame/subscribe [::collsubs/visibility :loaded?])]
                                [:<>
                                 [content-header]
                                 [content-wrapper]]))}))
