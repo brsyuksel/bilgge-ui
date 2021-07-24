@@ -18,3 +18,4 @@
 # clj-kondo cache
 /.clj-kondo/.cache
 .idea
+*.iml

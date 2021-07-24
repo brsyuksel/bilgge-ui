@@ -1,0 +1,35 @@
+name: push docker image to gcr
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  push-docker-image-to-gcr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: get the version
+        id: get_tag_name
+        run: echo ::set-output name=GIT_TAG_NAME::${GITHUB_REF/refs\/tags\//}
+      - name: checkout repo
+        uses: actions/checkout@v2
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+      - name: login to aws ecr
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+      - name: push to aws ecr
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: bilgge-ui
+          IMAGE_TAG: ${{ steps.get_tag_name.outputs.GIT_TAG_NAME}}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
