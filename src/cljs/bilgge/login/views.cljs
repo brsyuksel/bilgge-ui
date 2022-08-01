@@ -29,7 +29,7 @@
      [:div.columns
       [:div.column.is-4.is-offset-4
        [:p "Hey, user! I am sorry to say that I cannot afford to keep bilgge project running anymore so I decided to do something-say-to-hard."]
-       [:p "bilgge will be running until the end of the October, I'm kindly asking you that please back up your data in that time."]
+       [:p "bilgge will be running until the end of the September, I'm kindly asking you that please back up your data in that time."]
        [:p "You can also ask me to get database dump as contains only your data if you are planning to run bilgge local or on your server."]
        [:p "Fell free to reach me through " [:span.has-text-weight-bold "brsyuksel [a-like-sign] gmail"]]
        [:p "It was a great pleasure, thank you all a lot (:"]]]
